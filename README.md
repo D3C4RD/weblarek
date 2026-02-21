@@ -130,10 +130,8 @@ interface IProduct {
   
 
 ```
-type TPayment = 'online' | 'cash' | '';
-
 interface IBuyer {
-  payment: TPayment;
+  payment: string;
   email: string;
   phone: string;
   address: string;
@@ -218,5 +216,54 @@ interface IBuyer {
 
  `clearData(): void` - очистка данных покупателя
 
- `checkData():boolean` - проверить введенные данные
- 
+ `checkData(): IBuyer` - проверить введенные данные
+
+
+## Слой коммуникации
+
+Для взаимодействием с сервером определим следующие интерфейсы:
+
+```
+export interface IOrder extends IBuyer {
+  total: number,
+  items: string[]
+}
+```
+
+такой интерфейс нужен для отправки заказа покупателя:
+используются значения, что и у `IBuyer`, но добавлены:
+
+`total` - итоговая стоимость заказа
+
+`items` - список id товаров
+
+```
+export interface IResponse {
+  total: number,
+  id?: string,
+  items?: IProduct[]
+}
+```
+
+такой интерфейс пригодится для получения ответов с сервера:
+`total` - при get запросе это счетчик товаров, а при post запросе это итоговая стоимость
+
+`id` - для post запроса получаем id заказа
+
+`items` - для get запроса получаем список доступных товаров
+
+#### Класс WebApi
+
+Класс, который будет взаимодействовать с сервером через get и post запрос
+
+Конструктор принимает параметр `IApi` 
+
+Поля класса:
+
+`api: IApi` - интерфейс Api с get и post запросом
+
+Методы класса:
+
+`getProducts(): Promise<IResponse>` - метод, который получает список товаров с сервера
+
+`senOrder(data: IOrder): Promise<IResponse>` - метод, который отправляет заказ на сервер
