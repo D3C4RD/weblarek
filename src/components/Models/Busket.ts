@@ -1,11 +1,10 @@
-import { IProduct } from "./index";
-import { BaseClass } from "./BaseClass";
+import { IProduct } from "../../types/index";
 
-export class Busket extends BaseClass{
+export class Busket{
     private items: IProduct[] = [];
 
     public getItems(): IProduct[]{
-        return this.copyItems(this.items);
+        return [...this.items];
     }
 
     public addItem(item: IProduct): void{
@@ -29,18 +28,10 @@ export class Busket extends BaseClass{
     }
 
     public getTotal(): number{
-        let total: number= 0;
-        this.items.forEach(e => {
-            if (e.price !== null) { 
-                total += e.price;
-            }
-        });
-        return total;
+        return this.items.reduce((total, item) => total + (item.price || 0), 0);
     }
 
     public hasItem(id: string): boolean{
-        const item = this.items.find(e => e.id === id);
-        if(item) return true;
-        return false;
+        return this. items.some(item => item.id === id); 
     }
 }

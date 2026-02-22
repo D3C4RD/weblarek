@@ -14,8 +14,10 @@ export interface IProduct {
   price: number | null;
 } 
 
+type TPayment = "сard" | "cash" | "";
+
 export interface IBuyer {
-  payment: string;
+  payment: TPayment;
   email: string;
   phone: string;
   address: string;
@@ -27,9 +29,13 @@ export interface IOrder extends IBuyer {
   items: string[]
 }
 
-export interface IResponse {
+export interface IGet  {
   total: number,
-  id?: string,
-  items?: IProduct[]
+  items: IProduct[]
+}
+
+export interface IPost {
+  id: string,
+  total: number
 }
 
