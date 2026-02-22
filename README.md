@@ -130,12 +130,14 @@ interface IProduct {
   
 
 ```
-interface IBuyer {
-  payment: string;
+type TPayment = "сard" | "cash" | "";
+
+export interface IBuyer {
+  payment: TPayment;
   email: string;
   phone: string;
   address: string;
-}
+} 
 ```
 
 где 
@@ -167,12 +169,12 @@ interface IBuyer {
 
  `setItems(items: IProduct[]): void` - сохранить список товаров
 
+ `getItemById(id: number): IProduct | null` - получить выбранную карточку по id 
+
+ `getItem(item: IProduct): IProduct | null` - получить выбранную карточку
+
  `setItem(item: IProduct): void` - сохранить выбранную карточку
-
- `getItemById(id: number): IProduct` - получить выбранную карточку по id 
-
- `getItem(item: IProduct): IProduct` - получить выбранную карточку
- 
+  
 #### Класс Busket 
 
 Класс, который будет хранить товары, который хочет купить покупатель
@@ -212,11 +214,13 @@ interface IBuyer {
 
  `getData(): IBuyer` - получить данные покупателя
 
- `setData(data: IBuyer): void` - установить данные покупателя
+ `setData(data: Partial<IBuyer>): void` - установить данные покупателя
 
  `clearData(): void` - очистка данных покупателя
 
- `checkData(): IBuyer` - проверить введенные данные
+ `checkData(): Partial<Record<keyof IBuyer, string>>` - проверить введенные данные, вернет объект, который будет указывать на неверные поля
+  
+ `isFilled(): boolean` - проверить на заполнение всех полей
 
 
 ## Слой коммуникации
@@ -238,19 +242,28 @@ export interface IOrder extends IBuyer {
 `items` - список id товаров
 
 ```
-export interface IResponse {
+export interface IGet  {
   total: number,
-  id?: string,
-  items?: IProduct[]
+  items: IProduct[]
 }
 ```
 
-такой интерфейс пригодится для получения ответов с сервера:
-`total` - при get запросе это счетчик товаров, а при post запросе это итоговая стоимость
+такой интерфейс пригодится для получения ответа с GET запроса:
+`total` - количество товаров
+`items` - массив товаров
 
-`id` - для post запроса получаем id заказа
+```
+export interface IPost {
+  id: string,
+  total: number
+}
+```
 
-`items` - для get запроса получаем список доступных товаров
+такой интерфейс пригодится для получения ответа с POST запроса:
+
+`id` - номер заказа
+
+`total` - итоговая стоимость заказа
 
 #### Класс WebApi
 
@@ -264,6 +277,6 @@ export interface IResponse {
 
 Методы класса:
 
-`getProducts(): Promise<IResponse>` - метод, который получает список товаров с сервера
+`getProducts(): Promise<IGet>` - метод, который получает список товаров с сервера
 
-`senOrder(data: IOrder): Promise<IResponse>` - метод, который отправляет заказ на сервер
+`senOrder(data: IOrder): Promise<IPost>` - метод, который отправляет заказ на сервер
