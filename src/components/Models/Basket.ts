@@ -1,14 +1,14 @@
 import { IProduct } from "../../types/index";
 
-export class Busket{
+export class Basket{
     private items: IProduct[] = [];
 
-    public getItems(): IProduct[]{
-        return [...this.items];
+    public getItems(): readonly IProduct[]{
+        return this.items;
     }
 
     public addItem(item: IProduct): void{
-        this.items.push({...item});
+        this.items.push(item);
     }
 
     public removeItem(item: IProduct): void{

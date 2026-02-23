@@ -4,20 +4,20 @@ export class Products{
     private items: IProduct[] = [];
     private item: IProduct | null = null;
 
-    public getItems(): IProduct[]{
-        return [...this.items];
+    public getItems(): readonly IProduct[]{
+        return this.items;
     }
 
     public setItems(items: IProduct[]): void{
-        this.items = [...items];
+        this.items = items;
     }
 
-    public getItemById(id: string): IProduct | null{
+    public getItemById(id: string): Readonly<IProduct> | null{
         const item = this.items.find(e => e.id === id);
-        return item? {...item} : null;
+        return item? item : null;
     }
 
-    public getItem(): IProduct | null{
+    public getItem(): Readonly<IProduct> | null{
         return this.item || null;
     }
 

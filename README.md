@@ -165,17 +165,17 @@ export interface IBuyer {
 
 Методы класса:
 
- `getItems() : IProduct[]` - получить список товаров
+ `getItems() : readonly IProduct[]` - получить список товаров
 
  `setItems(items: IProduct[]): void` - сохранить список товаров
 
- `getItemById(id: number): IProduct | null` - получить выбранную карточку по id 
+ `getItemById(id: string): Readonly<IProduct> | null` - получить выбранную карточку по id 
 
- `getItem(item: IProduct): IProduct | null` - получить выбранную карточку
+ `getItem(item: IProduct): Readonly<IProduct> | null` - получить выбранную карточку
 
  `setItem(item: IProduct): void` - сохранить выбранную карточку
   
-#### Класс Busket 
+#### Класс Basket 
 
 Класс, который будет хранить товары, который хочет купить покупатель
 
@@ -186,7 +186,7 @@ export interface IBuyer {
 `items: IProduct[]` - массив покупаемых товаров
 
 Методы класса:
- `getItems(): IProduct[]` - возвращает список покупаемых товаров
+ `getItems(): readonly IProduct[]` - возвращает список покупаемых товаров
 
  `addItem(item: IProduct): void` - добавляет товар в корзину
 
@@ -212,7 +212,7 @@ export interface IBuyer {
 
 Методы класса:
 
- `getData(): IBuyer` - получить данные покупателя
+ `getData(): Readonly<IBuyer>` - получить данные покупателя
 
  `setData(data: Partial<IBuyer>): void` - установить данные покупателя
 
@@ -249,7 +249,9 @@ export interface IGet  {
 ```
 
 такой интерфейс пригодится для получения ответа с GET запроса:
+
 `total` - количество товаров
+
 `items` - массив товаров
 
 ```

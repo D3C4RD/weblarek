@@ -8,8 +8,8 @@ export class Buyer{
         email:""
     };
 
-    public getData(): IBuyer{
-        return {...this.data};
+    public getData(): Readonly<IBuyer>{
+        return this.data;
     }
 
     public setData(data: Partial<IBuyer>): void{
@@ -44,9 +44,5 @@ export class Buyer{
             errors.address = "Укажите адрес";
         }
         return errors;
-    }
-
-    public isFilled(): boolean {
-        return Object.keys(this.checkData()).length === 0;
     }
 }

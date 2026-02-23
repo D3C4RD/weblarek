@@ -1,5 +1,5 @@
 import './scss/styles.scss';
-import { Busket } from './components/Models/Busket';
+import { Basket } from './components/Models/Basket';
 import { Buyer} from './components/Models/Buyer';
 import { Products } from './components/Models/Products';
 import { WebApi } from './components/Models/WebApi';
@@ -63,7 +63,7 @@ else
 }
 
 console.log("\nПроверка класса Busket");
-const busket = new Busket();
+const busket = new Basket();
 console.log("Изначально корзина пуста");
 console.log(busket.getItems());
 
@@ -114,7 +114,7 @@ console.log("\nПроверка класса Buyer");
 const buyer = new Buyer();
 
 function check():void {
-    if(buyer.isFilled()){
+    if(Object.keys(buyer.checkData()).length === 0){
         console.log("Поля верны");
         console.log(buyer.getData())
     }
@@ -149,7 +149,7 @@ async function init(){
     console.log("Получены товары!");
     console.log(data);
 
-    const busket = new Busket();
+    const busket = new Basket();
     busket.addItem(data.items[0]);
     busket.addItem(data.items[1]);
     const order: IOrder = {
