@@ -369,6 +369,7 @@ classDiagram
     GalleryCard --|> ModalCard
     ModalForm --|> ModalOrder
     ModalForm --|> ModalContacts
+    BasketCard "0...n" --* ModalBasket 
 ```
 
 ### Класс Component<T>
