@@ -1,16 +1,33 @@
 import './scss/styles.scss';
-import { Basket } from './components/Models/Basket';
-import { Buyer} from './components/Models/Buyer';
-import { Products } from './components/Models/Products';
+//import { Basket } from './components/Models/Basket';
+//import { Buyer} from './components/Models/Buyer';
+//import { Products } from './components/Models/Products';
 import { WebApi } from './components/Models/WebApi';
-import { IOrder } from './types/index';
+//import { IOrder } from './types/index';
+const images = import.meta.glob('./content/**', {
+    eager: true,
+    import: 'default'
+});
+
+const imageUrls = Object.values(images) as string[];
 
 import { Api } from './components/base/Api';
 import { API_URL} from './utils/constants';
 
-import { apiProducts } from './utils/data';
+//import { apiProducts } from './utils/data';
+
+//import { Header } from './components/View/Header';
+import { EventEmitter } from './components/base/Events';
+import { ensureElement } from './utils/utils';
+import { CardGallery } from './components/View/CardGallery';
+//import { CardModal } from './components/View/CardModal';
+import { Modal } from './components/View/Modal';
+import { Basket } from './components/Models/Basket';
+import { ModalBasket } from './components/View/ModalBasket';
+
 
 // Проверка классов
+/*
 console.log("Проверка класса Products");
 const productsModel = new Products();
 productsModel.setItems(apiProducts.items);
@@ -139,16 +156,30 @@ buyer.clearData();
 console.log("Покупатель удален");
 console.log(buyer.getData());
 // Проверка запросов
-
+*/
 const api = new Api(API_URL);
 const webapi = new WebApi(api);
 console.log("\nПроверка запросов");
 
-async function init(){
-    const data = await webapi.getProducts();
-    console.log("Получены товары!");
-    console.log(data);
 
+async function init(){
+    const data1 = await webapi.getProducts();
+    const gallery = ensureElement('.gallery');
+    const events = new EventEmitter();
+    data1.items.forEach(e => {
+        const card = new CardGallery(events);
+        gallery.appendChild(card.render(e));
+    });
+    const modal = new Modal(events);
+    const basket = new Basket();
+    basket.addItem(data1.items[0]);
+    basket.addItem(data1.items[1]);
+    basket.addItem(data1.items[2]);
+    const basketModal = new ModalBasket(events);
+    const basketElement = basketModal.render({data:basket.getItems(), total: basket.getTotal()});
+    modal.content = basketElement;
+    modal.open();
+    /*
     const busket = new Basket();
     busket.addItem(data.items[0]);
     busket.addItem(data.items[1]);
@@ -165,10 +196,9 @@ async function init(){
     const answer = await webapi.sendOrder(order);
     console.log("Заказ отправлен!\nОтвет с сервера:");
     console.log(answer);
+    */
 }
 
 init().catch(console.error);
-
-
 
 

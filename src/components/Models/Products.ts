@@ -2,7 +2,7 @@ import { IProduct } from "../../types/index";
 
 export class Products{
     private items: IProduct[] = [];
-    private item: IProduct | null = null;
+    private item: IProduct | undefined = undefined;
 
     public getItems(): readonly IProduct[]{
         return this.items;
@@ -12,13 +12,13 @@ export class Products{
         this.items = items;
     }
 
-    public getItemById(id: string): Readonly<IProduct> | null{
+    public getItemById(id: string): Readonly<IProduct> | undefined{
         const item = this.items.find(e => e.id === id);
-        return item? item : null;
+        return item? item : undefined;
     }
 
-    public getItem(): Readonly<IProduct> | null{
-        return this.item || null;
+    public getItem(): Readonly<IProduct> | undefined{
+        return this.item || undefined;
     }
 
     public setItem(item: IProduct): void{

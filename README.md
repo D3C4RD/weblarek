@@ -282,3 +282,143 @@ export interface IPost {
 `getProducts(): Promise<IGet>` - метод, который получает список товаров с сервера
 
 `senOrder(data: IOrder): Promise<IPost>` - метод, который отправляет заказ на сервер
+
+## Слой представления (View)
+
+Для наглядности изобразим схему классов
+
+```mermaid
+classDiagram
+    class Component_T_ {
+        #container:HTMLElement
+        #setImage()
+        +render()
+    }
+    class Header{
+      #counterElement:HTMLElement
+      #basketButton:HTMLButtonElement
+      #events: IEvents
+      +set counter(value:number)
+    }
+    class Card{
+      #cardTitle: HTMLElement
+      #cardPrice: HTMLElement
+      #template: HTMLTemplate
+      #events: IEvents
+      +set title(value:string)
+      +set price(value:string)
+    }
+    class GalleryCard{
+      #cardCategory: HTMLElement
+      #cardImage: HTMLImageElement
+      #cardButton: HTMLButtonElement
+      +set category(value:string)
+    }
+    class ModalCard{
+      #cardDescription: HTMLElement
+      +setDescription(value:string)
+    }
+    class BasketCard{
+      #cardIndex: HTMLElement
+      #cardDelete: HTMLButtonElement
+      +set index(value:number)
+    }
+    class Modal{
+      #content: HTMLElement
+      #button: HTMLButtonElement
+      #events: IEvent
+      +open()
+      +close()
+    }
+    class ModalBasket{
+      #list: HTMLElement
+      #button: HTMLButtonElement
+      #price: HTMLElement
+      #events: IEvents
+    }
+    class ModalForm{
+      #template: HTMLTemplate
+      #submit: HTMLButtonElement
+    }
+    class ModalOrder{
+      #cash: HTMLButtonElement
+      #online: HTMKButtonElement
+      #adress: HTMLInputElement
+      +set adress()
+      +set payment()
+    }
+    class ModalContacts{
+      #email: HTMLInputElement
+      #phone: HTMLInputElement
+      set email()
+      set phone()
+    }
+    class ModalSucces{
+      #price: HTMLElement
+      #button: HTMLButtonElement
+    }
+    Component_T_ --|> Header : IHeader
+    Component_T_ --|> Card : IProduct
+    Component_T_ --|> Modal : IModalData
+    Component_T_ --|> ModalBasket : IModalBasket
+    Component_T_ --|> ModalForm : IBuyer
+    Component_T_ --|> ModalSucces : ISuccess
+    Card --|> GalleryCard
+    Card --|> BasketCard
+    GalleryCard --|> ModalCard
+    ModalForm --|> ModalOrder
+    ModalForm --|> ModalContacts
+```
+
+### Класс Component<T>
+
+является базовым классов, который выполняет основную роль: рендерит HTMLElement по интерфейсу T, а также позволяет установить картинку в HTMLIMageElement
+
+### Класс Header 
+
+Класс отвечающий за заголовок сайта
+
+Отображает количество товаров в корзине
+А так же должен посылать presenter'у сигнал об открытии корзины
+
+### Класс Card 
+
+Является родителем других классов, позволяет отображать карточки по шаблонам и устанавливать общие элементы дочерних классов
+
+### Класс BasketCard
+
+Наследует поля и методы Card, отображает данные одного товара в корзине, а также посылает сигнал presenter'у об удалении товара из корзины
+
+### Класс GalleryCard
+
+Наследует поля и методы Card и является родителем ModalCard, отображает данные одного товара в галлерее, а также посылает сигнал presenter'у о выбранной карточке товара
+
+В конструкторе указывается кнопка и сигнал, чтобы наследуемый класс, тоже мог пользоваться другими сигналами и кнопкой
+
+### Класс ModalCard 
+
+Наследует поля и методы GalleryCard, отображает данные товара в модальном окне и посылает сигнал о нажатии кнопки добавления/удаления товара в/из корзин(у/ы)
+
+### Класс Modal
+
+Отвечает за открытие и закрытие модального окна (через сигналы), а так же за отрисовку контента из шаблонов
+
+### ModalBasket 
+
+является контентом модального и отображает список товаров и посылает сигнал об оформлении заказа
+
+### ModalForm
+
+Является родительским классов, который отображает шаблон формы и посылает сигнал о заполнении формы в шаблоне
+
+### ModalOrder
+
+Наследует поля ModalForm. Отображает способ оплаты и адресс, а также посылает сигнал о продолжении формы через presenter
+
+### ModalContacts 
+
+Наследует поля ModalContacts. Отображает заполнение почты и телефона и посылает сигнал о завершении оформления заказа через presenter
+
+### ModalSucces 
+
+Отображает информацию о подтверждении заказа
