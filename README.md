@@ -334,6 +334,7 @@ classDiagram
       #list: HTMLElement
       #button: HTMLButtonElement
       #price: HTMLElement
+      #items: BasketCard[] = []
       #events: IEvents
     }
     class ModalForm{
