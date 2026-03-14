@@ -9,16 +9,20 @@ export interface IModalData {
 export class Modal extends Component<IModalData>{
     protected contentContainer: HTMLElement;
     protected closeButton: HTMLButtonElement;
-    protected modalElement: HTMLElement;
 
     constructor(protected events: IEvents){
         const container = ensureElement<HTMLElement>('.modal');
         super(container);
-        this.modalElement = this.container;
         this.contentContainer = ensureElement<HTMLElement>('.modal__content', this.container);
         this.closeButton = ensureElement<HTMLButtonElement>('.modal__close', this.container)
 
         this.closeButton.addEventListener('click', this.close.bind(this));
+
+        this.container.addEventListener('click', (event: MouseEvent) => {
+            if (event.target === this.container) {
+                this.close();
+            }
+        });
     }
 
     set content(value: HTMLElement | null) {
@@ -29,13 +33,10 @@ export class Modal extends Component<IModalData>{
     }
 
     open() {
-        this.modalElement.classList.add('modal_active');
-        this.events.emit('modal:open');
+        this.container.classList.toggle('modal_active');
     }
 
     close() {
-        this.modalElement.classList.remove('modal_active');
-        this.content = null; // Очищаем контент
-        this.events.emit('modal:close');
+        this.container.classList.toggle('modal_active');
     }
 }

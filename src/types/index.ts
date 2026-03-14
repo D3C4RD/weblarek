@@ -1,9 +1,11 @@
+import { categoryMap } from "../utils/constants";
+
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
 export interface IApi {
     get<T extends object>(uri: string): Promise<T>;
     post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
-}
+} 
 
 export interface IProduct {
   id: string;
@@ -14,7 +16,7 @@ export interface IProduct {
   price: number | null;
 } 
 
-type TPayment = "сard" | "cash" | "";
+export type TPayment = "card" | "cash" | "";
 
 export interface IBuyer {
   payment: TPayment;
@@ -39,3 +41,6 @@ export interface IPost {
   total: number
 }
 
+export function isCategoryKey(key: string): key is keyof typeof categoryMap {
+    return key in categoryMap;
+}

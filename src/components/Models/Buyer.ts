@@ -1,4 +1,5 @@
 import { IBuyer } from "../../types";
+import { IEvents } from "../base/Events";
 
 export class Buyer{
     private data: IBuyer = {
@@ -7,6 +8,8 @@ export class Buyer{
         phone:"",
         email:""
     };
+
+    constructor(private events: IEvents) {}
 
     public getData(): Readonly<IBuyer>{
         return this.data;
@@ -17,6 +20,7 @@ export class Buyer{
             ...this.data,
             ...data
         };
+        this.events.emit('buyer:changed', { data: this.data });
     }
 
     public clearData(): void{
@@ -24,24 +28,25 @@ export class Buyer{
         this.data.email = "";
         this.data.payment = "";
         this.data.phone = "";
+        this.events.emit('buyer:changed', { data: this.data });
     }
 
     public checkData(): Partial<Record<keyof IBuyer, string>>{
         const errors: Partial<Record<keyof IBuyer, string>> = {};
         if(!this.data.payment){
-            errors.payment = "Не выбран вид оплаты";
+            errors.payment = "Необходимо указать способ оплаты";
         }
 
         if(!this.data.email.trim()){
-            errors.email = "Укажите email";
+            errors.email = "Необходимо указать почту";
         }
 
         if(!this.data.phone.trim()){
-            errors.phone = "Укажите телефон";
+            errors.phone = "Необходимо указать телефон";
         }
 
         if(!this.data.address.trim()){
-            errors.address = "Укажите адрес";
+            errors.address = "Необходимо указать адрес";
         }
         return errors;
     }

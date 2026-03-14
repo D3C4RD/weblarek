@@ -1,8 +1,11 @@
 import { IProduct } from "../../types/index";
+import { IEvents } from "../base/Events";
 
 export class Products{
     private items: IProduct[] = [];
     private item: IProduct | undefined = undefined;
+
+    constructor(private events:IEvents){}
 
     public getItems(): readonly IProduct[]{
         return this.items;
@@ -10,19 +13,23 @@ export class Products{
 
     public setItems(items: IProduct[]): void{
         this.items = items;
+         this.events.emit('products:changed', { items: this.items });
     }
 
     public getItemById(id: string): Readonly<IProduct> | undefined{
+    
         const item = this.items.find(e => e.id === id);
-        return item? item : undefined;
+
+        return item ? item : undefined;
     }
 
     public getItem(): Readonly<IProduct> | undefined{
         return this.item || undefined;
     }
 
-    public setItem(item: IProduct): void{
+    public setItem(item: IProduct | undefined): void{
         this.item = item;
+        this.events.emit('products:selected', { item: this.item });
     }
 }
 

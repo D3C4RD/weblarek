@@ -287,90 +287,7 @@ export interface IPost {
 
 Для наглядности изобразим схему классов
 
-```mermaid
-classDiagram
-    class Component_T_ {
-        #container:HTMLElement
-        #setImage()
-        +render()
-    }
-    class Header{
-      #counterElement:HTMLElement
-      #basketButton:HTMLButtonElement
-      #events: IEvents
-      +set counter(value:number)
-    }
-    class Card{
-      #cardTitle: HTMLElement
-      #cardPrice: HTMLElement
-      #template: HTMLTemplate
-      #events: IEvents
-      +set title(value:string)
-      +set price(value:string)
-    }
-    class GalleryCard{
-      #cardCategory: HTMLElement
-      #cardImage: HTMLImageElement
-      #cardButton: HTMLButtonElement
-      +set category(value:string)
-    }
-    class ModalCard{
-      #cardDescription: HTMLElement
-      +setDescription(value:string)
-    }
-    class BasketCard{
-      #cardIndex: HTMLElement
-      #cardDelete: HTMLButtonElement
-      +set index(value:number)
-    }
-    class Modal{
-      #content: HTMLElement
-      #button: HTMLButtonElement
-      #events: IEvent
-      +open()
-      +close()
-    }
-    class ModalBasket{
-      #list: HTMLElement
-      #button: HTMLButtonElement
-      #price: HTMLElement
-      #items: BasketCard[] = []
-      #events: IEvents
-    }
-    class ModalForm{
-      #template: HTMLTemplate
-      #submit: HTMLButtonElement
-    }
-    class ModalOrder{
-      #cash: HTMLButtonElement
-      #online: HTMKButtonElement
-      #adress: HTMLInputElement
-      +set adress()
-      +set payment()
-    }
-    class ModalContacts{
-      #email: HTMLInputElement
-      #phone: HTMLInputElement
-      set email()
-      set phone()
-    }
-    class ModalSucces{
-      #price: HTMLElement
-      #button: HTMLButtonElement
-    }
-    Component_T_ --|> Header : IHeader
-    Component_T_ --|> Card : IProduct
-    Component_T_ --|> Modal : IModalData
-    Component_T_ --|> ModalBasket : IModalBasket
-    Component_T_ --|> ModalForm : IBuyer
-    Component_T_ --|> ModalSucces : ISuccess
-    Card --|> GalleryCard
-    Card --|> BasketCard
-    GalleryCard --|> ModalCard
-    ModalForm --|> ModalOrder
-    ModalForm --|> ModalContacts
-    BasketCard "0...n" --* ModalBasket 
-```
+![View](/src/UML/View.png)
 
 ### Класс Component<T>
 
@@ -393,11 +310,11 @@ classDiagram
 
 ### Класс GalleryCard
 
-Наследует поля и методы Card и является родителем ModalCard, отображает данные одного товара в галлерее, а также посылает сигнал presenter'у о выбранной карточке товара
+Наследует поля и методы Card и является родителем CardPreview, отображает данные одного товара в галлерее, а также посылает сигнал presenter'у о выбранной карточке товара
 
 В конструкторе указывается кнопка и сигнал, чтобы наследуемый класс, тоже мог пользоваться другими сигналами и кнопкой
 
-### Класс ModalCard 
+### Класс CardPreview 
 
 Наследует поля и методы GalleryCard, отображает данные товара в модальном окне и посылает сигнал о нажатии кнопки добавления/удаления товара в/из корзин(у/ы)
 
@@ -409,18 +326,30 @@ classDiagram
 
 является контентом модального и отображает список товаров и посылает сигнал об оформлении заказа
 
-### ModalForm
+### Form
 
 Является родительским классов, который отображает шаблон формы и посылает сигнал о заполнении формы в шаблоне
 
-### ModalOrder
+### Order
 
-Наследует поля ModalForm. Отображает способ оплаты и адресс, а также посылает сигнал о продолжении формы через presenter
+Наследует поля Form. Отображает способ оплаты и адресс, а также посылает сигнал о продолжении формы через presenter
 
-### ModalContacts 
+### Contacts 
 
-Наследует поля ModalContacts. Отображает заполнение почты и телефона и посылает сигнал о завершении оформления заказа через presenter
+Наследует поля Contacts. Отображает заполнение почты и телефона и посылает сигнал о завершении оформления заказа через presenter
 
-### ModalSucces 
+### Succes 
 
 Отображает информацию о подтверждении заказа
+
+## Презентер
+
+Presenter выглядит следующим образом
+
+![Presenter](/src/UML/Presenter.png)
+
+Это фасад из всех классов из Model и View
+
+Так же есть метод renderGallery(), которые рендерит карточки каталога за счет get запроса с сервера
+
+и методы, которые являются функциями, которые будут использовать для отработки событий

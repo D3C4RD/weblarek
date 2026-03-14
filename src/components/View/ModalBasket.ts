@@ -17,44 +17,42 @@ export class ModalBasket extends Component<IModalBasket>{
     
     constructor(protected events: IEvents) {
         const temp: HTMLTemplateElement = ensureElement<HTMLTemplateElement>("#basket");
-        const container: HTMLElement = temp.content.cloneNode(true) as HTMLElement;
+        const fragment = temp.content.cloneNode(true) as DocumentFragment;
+        const container = fragment.firstElementChild as HTMLElement;
         super(container);
 
         this.listElement = ensureElement<HTMLElement>('.basket__list', this.container);
         this.totalElement = ensureElement<HTMLElement>('.basket__price', this.container);
         this.buttonElement = ensureElement<HTMLButtonElement>('.basket__button', this.container);
-
+        this.buttonElement.disabled = true;
         this.buttonElement.addEventListener('click', () => {
             this.events.emit('basket:order');
         });
     }
 
     set data(products: IProduct[]) {
-        // Очищаем список
+        
         this.listElement.innerHTML = '';
         this.basketItems = [];
 
-        // Создаем карточки для каждого товара
         products.forEach((product, index) => {
             const card = new CardBasket(this.events);
             
-            // Устанавливаем данные
             card.render(product);
             card.index = index + 1; // Нумерация с 1
             
-            // Сохраняем ссылку на карточку
             this.basketItems.push(card);
             
-            // Добавляем в DOM
             this.listElement.appendChild(card.render());
         });
 
-        // Обновляем общую сумму
     }
 
     set total(value: number) {
         this.totalElement.textContent = `${value} синапсов`;
     }
 
-    
+    public setButtonDisabled(value:boolean): void{
+        this.buttonElement.disabled = value;
+    }
 }
