@@ -13,23 +13,23 @@ export class Products{
 
     public setItems(items: IProduct[]): void{
         this.items = items;
-         this.events.emit('products:changed', { items: this.items });
+         this.events.emit('products:changed');
     }
 
     public getItemById(id: string): Readonly<IProduct> | undefined{
     
         const item = this.items.find(e => e.id === id);
 
-        return item ? item : undefined;
+        return item;
     }
 
     public getItem(): Readonly<IProduct> | undefined{
-        return this.item || undefined;
+        return this.item;
     }
 
     public setItem(item: IProduct | undefined): void{
         this.item = item;
-        this.events.emit('products:selected', { item: this.item });
+        this.events.emit('product:selected');
     }
 }
 

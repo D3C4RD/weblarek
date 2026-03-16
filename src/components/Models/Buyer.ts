@@ -20,7 +20,7 @@ export class Buyer{
             ...this.data,
             ...data
         };
-        this.events.emit('buyer:changed', { data: this.data });
+        this.events.emit('buyer:changed');
     }
 
     public clearData(): void{
@@ -28,7 +28,7 @@ export class Buyer{
         this.data.email = "";
         this.data.payment = "";
         this.data.phone = "";
-        this.events.emit('buyer:changed', { data: this.data });
+        this.events.emit('buyer:changed');
     }
 
     public checkData(): Partial<Record<keyof IBuyer, string>>{

@@ -2,22 +2,22 @@
 import { Card } from "./Card";
 import { ensureElement } from "../../utils/utils";
 import { IEvents } from "../base/Events";
-import { isCategoryKey } from "../../types";
+import { ICardActions, isCategoryKey } from "../../types";
 import { categoryMap } from "../../utils/constants";
 
 export class CardGallery extends Card{
     protected categoryElement: HTMLElement;
     protected imageElement: HTMLImageElement;
 
-    constructor(protected events: IEvents) {
+    constructor(protected events: IEvents, actions?: ICardActions) {
         super(events,'#card-catalog');
 
         this.categoryElement = ensureElement<HTMLElement>('.card__category',this.container);
         this.imageElement = ensureElement<HTMLImageElement>('.card__image',this.container);
 
-        this.container.addEventListener('click', () => {
-            events.emit("CardGallery:select", {id: this.id});
-        });
+        if(actions?.onClick) {
+            this.container.addEventListener('click', actions.onClick);
+        }
     }
 
     set category(value: string){

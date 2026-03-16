@@ -19,11 +19,11 @@ export class Succes extends Component<ISucces>{
         this.succesButton = ensureElement<HTMLButtonElement>(".button",this.container);
         this.orderSucces = ensureElement<HTMLElement>('.order-success__description',this.container);
 
-        this.succesButton.addEventListener('click', ()=> this.events.emit('succes:click'));
+        this.succesButton.addEventListener('click', ()=> this.events.emit('modal:close'));
     }
 
     set total(value:number){
-        this.orderSucces.textContent = `Заказ оформлен Списано ${value} синапсов За новыми покупками!`;
+        this.orderSucces.textContent = `Списано ${value} синапсов`;
     }
 }
 

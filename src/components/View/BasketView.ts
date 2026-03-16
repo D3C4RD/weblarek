@@ -1,19 +1,17 @@
-import { IProduct } from "../../types";
+
 import { ensureElement } from "../../utils/utils";
 import { Component } from "../base/Component";
 import { IEvents } from "../base/Events";
-import { CardBasket } from "./CardBasket";
 
-export interface IModalBasket{
-    data: readonly IProduct[],
+interface IBasketView{
+    data: HTMLElement[],
     total: number
 }
 
-export class ModalBasket extends Component<IModalBasket>{
+export class BasketView extends Component<IBasketView>{
     protected listElement: HTMLElement;
     protected totalElement: HTMLElement;
     protected buttonElement: HTMLButtonElement;
-    protected basketItems: CardBasket[] = [];
     
     constructor(protected events: IEvents) {
         const temp: HTMLTemplateElement = ensureElement<HTMLTemplateElement>("#basket");
@@ -30,20 +28,13 @@ export class ModalBasket extends Component<IModalBasket>{
         });
     }
 
-    set data(products: IProduct[]) {
+    set data(elements: HTMLElement[]) {
         
         this.listElement.innerHTML = '';
-        this.basketItems = [];
 
-        products.forEach((product, index) => {
-            const card = new CardBasket(this.events);
+        elements.forEach((e) => {
             
-            card.render(product);
-            card.index = index + 1; // Нумерация с 1
-            
-            this.basketItems.push(card);
-            
-            this.listElement.appendChild(card.render());
+            this.listElement.appendChild(e);
         });
 
     }
@@ -52,7 +43,7 @@ export class ModalBasket extends Component<IModalBasket>{
         this.totalElement.textContent = `${value} синапсов`;
     }
 
-    public setButtonDisabled(value:boolean): void{
+    set buttonDisabled(value: boolean) {
         this.buttonElement.disabled = value;
     }
 }

@@ -12,21 +12,21 @@ export class Basket{
 
     public addItem(item: IProduct): void{
         this.items.push(item);
-        this.events.emit("basket:changed", {items: this.items});
+        this.events.emit("basket:changed");
     }
 
     public removeItem(item: IProduct): void{
         const index = this.items.findIndex(e => e.id === item.id);
         if(index === -1 ){
-            throw new Error("Товар не найден в корзине");
+            return;
         }
         this.items.splice(index,1);
-        this.events.emit("basket:changed", {items: this.items});
+        this.events.emit("basket:changed");
     }
 
     public clearBasket(): void{
         this.items = [];
-        this.events.emit("basket:changed", {items: this.items});
+        this.events.emit("basket:changed");
     }
 
     public getQuantity(): number{

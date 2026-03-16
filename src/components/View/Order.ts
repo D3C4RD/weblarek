@@ -16,21 +16,15 @@ export class Order extends Form{
         this.addressInput = ensureElement<HTMLInputElement>('.form__input[name="address"]',this.container);
         
 
-        this.cashButton.addEventListener('click', ()=> this.events.emit('order:payment:select', {payment: 'cash'}));
-        this.cardButton.addEventListener('click', ()=> this.events.emit('order:payment:select', {payment: 'card'}));
-        this.addressInput.addEventListener('input', ()=> this.events.emit('order:address:change', {address:this.addressInput.value}));
-        super.setSubmitDisable(true);
+        this.cashButton.addEventListener('click', ()=> this.events.emit('order:payment', {payment: 'cash'}));
+        this.cardButton.addEventListener('click', ()=> this.events.emit('order:payment', {payment: 'card'}));
+        this.addressInput.addEventListener('input', ()=> this.events.emit('order:address', {address:this.addressInput.value}));
+        super.submitDisabled = true;
     }
 
     set payment(value: TPayment){
-        this.cashButton.classList.remove('button_alt-active');
-        this.cardButton.classList.remove('button_alt-active');
-
-        if (value === 'card') {
-            this.cardButton.classList.toggle('button_alt-active');
-        } else if (value === 'cash') {
-            this.cashButton.classList.toggle('button_alt-active');
-        }
+        this.cashButton.classList.toggle('button_alt-active', value === 'cash');
+        this.cardButton.classList.toggle('button_alt-active', value === 'card');
     }
 
     set address(value: string){

@@ -35,4 +35,7 @@
       color: color.adjust($primaryLight, $lightness: 23%);
     }
   }
+  &__errors {
+    white-space: pre-line;
+  }
 }

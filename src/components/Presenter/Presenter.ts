@@ -1,60 +1,84 @@
 import { EventEmitter } from "../base/Events";
-import { WebApi } from "../Models/WebApi";
-import { Products } from "../Models/Products";
-import { Basket } from "../Models/Basket";
-import { Buyer } from "../Models/Buyer";
-import { Modal } from "../View/Modal";
-import { Header } from "../View/Header";
-import { ModalBasket } from "../View/ModalBasket";
-import { Order } from "../View/Order";
-import { Contacts } from "../View/Contacts";
-import { Succes } from "../View/Succes";
 import { CardGallery } from "../View/CardGallery";
 import { CardPreview } from "../View/CardPreview";
-import { ensureElement } from "../../utils/utils";
-import { IProduct, IBuyer, IOrder, TPayment } from "../../types";
+import { IOrder, TPayment } from "../../types";
+import { CardBasket } from "../View/CardBasket";
+import { IBasketModel, IBuyerModel, IProductsModel } from "../../types/models";
+import { IWebApi } from "../../types/api";
+import { 
+    IHeaderView, 
+    IModalView, 
+    IBasketView, 
+    IOrderView, 
+    IContactsView, 
+    ISuccesView, 
+    IGalleryView, 
+    ICardPreviewView 
+} from "../../types/views";
+
 
 export class Presenter{
     //Брокер событий
     protected events: EventEmitter;
     //Api
-    protected webapi: WebApi;
+    protected webapi: IWebApi;
 
     //Modal
-    protected products: Products;
-    protected basket: Basket;
-    protected buyer: Buyer;
+    protected products: IProductsModel;
+    protected basket: IBasketModel;
+    protected buyer: IBuyerModel;
 
     //View
-    protected modal: Modal;
-    protected header: Header;
-    protected modalBasket: ModalBasket;
-    protected order: Order;
-    protected contacts: Contacts;
-    protected succes: Succes;
-    protected preview: CardPreview;
+    protected modal: IModalView;
+    protected header: IHeaderView;
+    protected BasketView: IBasketView;
+    protected order: IOrderView;
+    protected contacts: IContactsView;
+    protected succes: ISuccesView;
 
     //Gallery 
-    protected gallery: HTMLElement;
+    protected gallery: IGalleryView;
+    
+    protected currentPreview: ICardPreviewView | null = null; // Ссылка на текущее превью
 
-    constructor(api:WebApi){
-        this.events = new EventEmitter();
+    protected isBasketOpen: boolean = false;
+    protected isOrderOpen: boolean = false;
+    protected isContactsOpen: boolean = false;
+    protected isSuccesOpen: boolean = false;
+
+    constructor(
+        events: EventEmitter,
+        api:IWebApi, 
+        products: IProductsModel,
+        basket: IBasketModel, 
+        buyer: IBuyerModel,
+        modal: IModalView,
+        header: IHeaderView,
+        basketView: IBasketView,
+        order: IOrderView,
+        contacts: IContactsView,
+        succes: ISuccesView,
+        gallery: IGalleryView
+    ){
+        this.events = events;
 
         this.webapi = api;
 
-        this.products = new Products(this.events);
-        this.basket = new Basket(this.events);
-        this.buyer = new Buyer(this.events);
+        this.products = products;
+        this.basket = basket;
+        this.buyer = buyer;
 
-        this.modal = new Modal(this.events);
-        this.header = new Header(this.events, ensureElement<HTMLElement>(".header"));
-        this.modalBasket = new ModalBasket(this.events);
-        this.order = new Order(this.events);
-        this.contacts = new Contacts(this.events);
-        this.succes = new Succes(this.events);
-        this.preview = new CardPreview(this.events);
+        this.modal = modal;
+        this.header = header;
+        this.BasketView = basketView;
+        this.order = order;
+        this.contacts = contacts;
+        this.succes = succes;
+        //this.preview = new CardPreview(this.events);
 
-        this.gallery = ensureElement(".gallery");
+        this.gallery = gallery;
+
+
 
         this.subscribeToEvents();
     }
@@ -73,265 +97,253 @@ export class Presenter{
     }
 
     protected subscribeToEvents(): void{
-        //Выбор карточки в галлерее
-        this.events.on("CardGallery:select", this.handleCardGallerySelect.bind(this));
+        //события для карточек в галлерее
+        this.events.on("CardGallery:select", this.handleCardGallerySelect.bind(this)); //View -> Presenter -> Models
         
-        //Добавление/удаление товара
-        this.events.on("CardPreview:select", this.handleCardPreviewSelect.bind(this));
+        //События для карточки в модальном окне
+        this.events.on('product:selected', this.handleProductSelected.bind(this)); // Models -> Presenter -> View
+        this.events.on('CardPreview:select', this.handleCardPreviewSelected.bind(this)); //View -> Presenter -> Models
+        
+        //События для закрытия модального окна
+        this.events.on("modal:close", this.handleModalClose.bind(this));  //View -> Presenter -> View (UI)
 
-        //События корзины
-        this.events.on("basket:changed", this.handleBasketChanged.bind(this));
-        this.events.on("basket:open", this.handleBasketOpen.bind(this));
-        this.events.on("basket:order", this.handleBasketOrder.bind(this));
+        //События для корзины
+        this.events.on('basket:changed', this.handleBasketChanged.bind(this));  //Models -> Presenter -> View
+        this.events.on('basket:open',this.handleBasketOpen.bind(this));  //View -> Presenter -> View (UI)
+        this.events.on('cardBasket:delete', this.handleCardBasketDelete.bind(this));  //View -> Presenter -> Models
+        this.events.on('basket:order', this.handleBasketOrder.bind(this)); //View -> Presenter -> View (UI)
 
-        //Событие карточки корзины
-        this.events.on("CardBasket:delete", this.handleCardBasketDelete.bind(this));
-
-        //События Формы заказа
-        this.events.on("order:payment:select", this.handleOrderPaymentSelect.bind(this));
-        this.events.on("order:address:change", this.handleOrderAddressChange.bind(this));
-        this.events.on("order:submit", this.handleOrderSubmit.bind(this));
-        this.events.on("contacts:email", this.handleContactsEmail.bind(this));
-        this.events.on("contacts:phone", this.handleContactsPhone.bind(this));
-        this.events.on("contacts:submit", this.handleContactsSubmit.bind(this));
-        this.events.on("succes:click", this.handleSuccesClick.bind(this));
-
-        //Событие покупателя 
-        this.events.on("buyer:changed", this.handleBuyerChanged.bind(this));
+        //События для оформления заказа
+        this.events.on('order:payment', this.handleOrderPayment.bind(this)); //View -> Presenter -> Models
+        this.events.on('order:address', this.handleOrderAddress.bind(this)); //View -> Presenter -> Models
+        this.events.on('contacts:phone', this.handleContactsPhone.bind(this)); //View -> Presenter -> Models
+        this.events.on('contacts:email', this.handleContactsEmail.bind(this)); //View -> Presenter -> Models
+        this.events.on('buyer:changed', this.handleBuyerChanged.bind(this)); //Models -> Presenter -> View
+        this.events.on('order:submit', this.handleOrderSubmit.bind(this)); //View -> Presenter -> View
+        this.events.on('contacts:submit', this.handleContactsSubmit.bind(this)) //View -> Presenter -> View
     }
 
-    protected renderGallery(): void {
+    private renderGallery(): void {
         const products = this.products.getItems();
-        this.gallery.innerHTML = ''; // Очищаем галерею
-        
-        products.forEach(product => {
-            const card = new CardGallery(this.events);
-            this.gallery.appendChild(card.render(product));
+        const cardElements = products.map(product => {
+            const card = new CardGallery(this.events,{
+                onClick: () => this.events.emit("CardGallery:select",{ id: product.id })
+            });
+            return card.render(product);
         });
+        
+        // Обновляем галерею через компонент View
+        this.gallery.items = cardElements;
     }
 
-    /**
-     * Обработчик выбора карточки в галерее
-     */
-    protected handleCardGallerySelect(data: { id: string }): void {
+    protected handleCardGallerySelect(data:{id: string}): void {
         const product = this.products.getItemById(data.id);
         if (!product) {
             console.error(`Товар с id ${data.id} не найден`);
             return;
         }
-        
-        const previewElement = this.preview.render(product);
-        const isInBasket = this.basket.hasItem(data.id);
-        
+
+        this.products.setItem(product);
+    }
+
+    protected handleProductSelected(): void{
+        const product = this.products.getItem();
+        if(!product) return;
+
+        const preview = new CardPreview(this.events);
+        const previewElement = preview.render(product);
+
+        const isInBasket = this.basket.hasItem(product.id);
         if (isInBasket) {
-            this.preview.setTextOnButton("Удалить из корзины");
+            preview.buttonText = "Удалить из корзины";
         } else if (product.price) {
-            this.preview.setTextOnButton("Купить");
+            preview.buttonText = "Купить";
         }
-        
+        else
+        {
+            preview.buttonText = "Недоступно";
+            preview.buttonDisabled = true;
+        }
+        this.currentPreview = preview;
+
         this.modal.render({ content: previewElement });
         this.modal.open();
     }
 
-    /**
-     * Обработчик клика по кнопке в превью
-     */
-    protected handleCardPreviewSelect(data: { id: string }): void {
-        const product = this.products.getItemById(data.id);
-        if (!product) {
-            console.error(`Товар с id ${data.id} не найден`);
-            return;
-        }
-        
-        const isInBasket = this.basket.hasItem(data.id);
-        
-        if (isInBasket && product.price) {
-            this.preview.setTextOnButton("Купить");
+    protected handleCardPreviewSelected(): void{
+        const product = this.products.getItem();
+        if(!product) return;
+        const isInBasket = this.basket.hasItem(product.id);
+        if(isInBasket) {
             this.basket.removeItem(product);
-        } else if (product.price) {
-            this.preview.setTextOnButton("Удалить из корзины");
+        }
+        else
+        {
             this.basket.addItem(product);
         }
-        
-        this.modal.close();
-    }
-    
-    /**
-     * Обработчик изменения корзины
-     */
-    protected handleBasketChanged(data: { items: IProduct[] }): void {
-        const isEmpty = this.basket.getQuantity() === 0;
-        this.modalBasket.setButtonDisabled(isEmpty);
-        this.header.render({ counter: data.items.length });
-        this.modalBasket.render({ 
-            data: this.basket.getItems(), 
-            total: this.basket.getTotal() 
-        });
     }
 
-    /**
-     * Обработчик открытия корзины
-     */
-    protected handleBasketOpen(): void {
-        this.modal.render({ 
-            content: this.modalBasket.render({ 
-                data: this.basket.getItems(), 
-                total: this.basket.getTotal() 
-            })
+    protected handleModalClose(): void {
+        this.modal.close();
+        this.currentPreview = null;
+        if(this.isBasketOpen) this.isBasketOpen = false;
+        if(this.isContactsOpen) this.isContactsOpen = false;
+        if(this.isOrderOpen) this.isOrderOpen = false;
+    }
+
+    private renderBasket(): void {
+        const products = this.basket.getItems();
+        const total = this.basket.getTotal();
+        
+        const cardElements: HTMLElement[] = products.map((product, index) => {
+            const card = new CardBasket(this.events,{
+                onClick: () => this.events.emit("cardBasket:delete",{ id: product.id })
+            });
+            card.index = index + 1;
+            const cardElement = card.render(product);
+            return cardElement;
         });
+        
+        this.BasketView.buttonDisabled = products.length === 0;
+        this.BasketView.render({ 
+            data: cardElements, 
+            total: total 
+        });
+    }
+    
+    protected handleBasketChanged(): void{
+        this.header.counter = this.basket.getQuantity();
+        if(this.isBasketOpen)
+        {
+            this.renderBasket();
+        }
+        else if(this.isSuccesOpen){
+            return;
+        }
+        else
+        {
+            this.modal.close();
+            this.currentPreview = null;
+        }
+    }
+
+    protected handleBasketOpen(): void{
+        this.isBasketOpen = true;
+        this.renderBasket();
+        this.modal.render({content: this.BasketView.render()});
         this.modal.open();
     }
 
-    /**
-     * Обработчик перехода к оформлению заказа
-     */
-    protected handleBasketOrder(): void {
-        const temp = this.buyer.getData();
-        this.modal.render({ 
-            content: this.order.render({ 
-                payment: temp.payment, 
-                address: temp.address, 
-                phone: temp.phone, 
-                email: temp.email 
-            })
-        });
-    }
-
-    /**
-     * Обработчик удаления товара из корзины
-     */
-    protected handleCardBasketDelete(data: { id: string }): void {
+    protected handleCardBasketDelete(data:{id: string}): void{
         const product = this.products.getItemById(data.id);
-        
-        if (!product) {
-            console.error(`Товар с id ${data.id} не найден`);
-            return;
-        }
-
-        if (this.basket.hasItem(data.id)) {
-            this.basket.removeItem(product);
-        }
-
-        this.modalBasket.setButtonDisabled(this.basket.getQuantity() === 0);
+        if(!product) return;
+        this.basket.removeItem(product);
     }
 
-    /**
-     * Обработчик выбора способа оплаты
-     */
-    protected handleOrderPaymentSelect(data: { payment: TPayment }): void {
-        const currentPayment = this.buyer.getData().payment;
-        
-        if (currentPayment === data.payment) {
-            this.buyer.setData({ payment: "" });
-            this.order.payment = "";
-        } else {
-            this.buyer.setData({ payment: data.payment });
-            this.order.payment = data.payment;
-        }
-    }
-
-    /**
-     * Обработчик изменения адреса
-     */
-    protected handleOrderAddressChange(data: { address: string }): void {
-        this.buyer.setData({ address: data.address });
-    }
-
-    /**
-     * Обработчик отправки формы заказа
-     */
-    protected handleOrderSubmit(): void {
+    protected handleBasketOrder(): void{
         const temp = this.buyer.getData();
-        this.modal.render({ 
-            content: this.contacts.render({ 
-                payment: temp.payment, 
-                address: temp.address, 
-                phone: temp.phone, 
-                email: temp.email 
-            })
-        });
-    }
-
-    /**
-     * Обработчик изменения email
-     */
-    protected handleContactsEmail(data: { email: string }): void {
-        this.buyer.setData({ email: data.email });
-    }
-
-    /**
-     * Обработчик изменения телефона
-     */
-    protected handleContactsPhone(data: { phone: string }): void {
-        this.buyer.setData({ phone: data.phone });
-    }
-
-    /**
-     * Обработчик отправки контактных данных
-     */
-    protected handleContactsSubmit(): void {
-        const temp = this.buyer.getData();
-         
-        const toSend: IOrder = {
-            payment: temp.payment,
-            address: temp.address,
-            email: temp.email,
-            phone: temp.phone,
-            total: this.basket.getTotal(),
-            items: this.basket.getItems().map(e => e.id)
-        };
-        
-        this.webapi.sendOrder(toSend)
-            .then(answer => {
-                this.modal.render({ 
-                    content: this.succes.render({ total: answer.total })
-                });
-                console.log(answer);
-            })
-            .catch(error => {
-                console.error('Ошибка при отправке заказа:', error);
-            });
-    }
-
-    /**
-     * Обработчик изменения данных покупателя
-     */
-    protected handleBuyerChanged(data: IBuyer): void {
         const errors = this.buyer.checkData();
-        
-        // Валидация полей заказа
-        if (errors.payment) {
-            this.order.setErrors(errors.payment);
-            this.order.setSubmitDisable(true);
-        } else if (errors.address) {
-            this.order.setErrors(errors.address);
-            this.order.setSubmitDisable(true);
-        } else {
-            this.order.setErrors("");
-            this.order.setSubmitDisable(false);
-        }
-        
-        // Валидация полей контактов
-        if (errors.email) {
-            this.contacts.setErrors(errors.email);
-            this.contacts.setSubmitDisable(true);
-        } else if (errors.phone) {
-            this.contacts.setErrors(errors.phone);
-            this.contacts.setSubmitDisable(true);
-        } else {
-            this.contacts.setErrors("");
-            this.contacts.setSubmitDisable(false);
-        }
+        let error: string = "";
+        this.isBasketOpen = false;
+        this.isOrderOpen = true;
+        if(errors.payment) error+= errors.payment + "\n";
+        if(errors.address) error+= errors.address;
+        this.order.errorText = error;
+        this.modal.render({content:this.order.render({
+            payment: temp.payment,
+            address: temp.address
+        })});
     }
 
-    /**
-     * Обработчик клика по кнопке успеха
-     */
-    protected handleSuccesClick(): void {
-        this.basket.clearBasket();
-        this.buyer.clearData();
-        this.modal.content = null;
-        this.modal.close();
+    protected handleOrderSubmit(): void{
+        const temp = this.buyer.getData();
+        const errors = this.buyer.checkData();
+        let error: string = "";
+        this.isOrderOpen = false;
+        this.isContactsOpen = true;
+        if(errors.email) error+= errors.email + "\n";
+        if(errors.phone) error+= errors.phone;
+        this.contacts.errorText = error;
+        this.modal.render({
+            content:this.contacts.render({
+                phone: temp.phone,
+                email: temp.email
+            })});
     }
 
+    protected handleContactsSubmit():void{
+        this.isContactsOpen = false;
+        this.isSuccesOpen = true;
+        const temp = this.buyer.getData();
+
+        const toSend: IOrder = { 
+            payment: temp.payment, 
+            address: temp.address, 
+            email: temp.email, 
+            phone: temp.phone, 
+            total: this.basket.getTotal(), 
+            items: this.basket.getItems().map(e => e.id) 
+        }; 
+        this.webapi.sendOrder(toSend) 
+            .then(answer => { 
+                this.modal.render({  
+                    content: this.succes.render({ total: answer.total }) 
+                }); 
+                this.basket.clearBasket();
+                this.isSuccesOpen = false;
+            })
+            .catch(error => { 
+                console.error('Ошибка при отправке заказа:', error); 
+            }); 
+
+    }
+
+    protected handleOrderPayment(data:{payment: TPayment}): void{
+        this.buyer.setData({payment:data.payment});
+    }
+
+    protected handleOrderAddress(data:{address: string}):void{
+        this.buyer.setData({address: data.address});
+    }
+
+    protected handleContactsEmail(data:{email:string}):void{
+        this.buyer.setData({email:data.email});
+    }
+
+    protected handleContactsPhone(data:{phone:string}):void{
+        this.buyer.setData({phone:data.phone});
+    }
+
+    protected handleBuyerChanged():void{
+        const errors = this.buyer.checkData();
+        const buyer = this.buyer.getData();
+
+        if(this.isOrderOpen)
+        {
+            this.order.payment = buyer.payment;
+
+            let errorOrder: string = "";
+            if(errors.payment) errorOrder+= errors.payment+"\n";
+            if(errors.address) errorOrder+= errors.address;
+            this.order.errorText = errorOrder;
+            if(errorOrder==="") 
+                this.order.submitDisabled=false;
+            else 
+                this.order.submitDisabled=true;
+        }
+        
+       
+        if(this.isContactsOpen)
+        {
+            let errorContacts: string ="";
+            if(errors.email) errorContacts+= errors.email+"\n";
+            if(errors.phone) errorContacts+= errors.phone;
+            this.contacts.errorText = errorContacts;
+            if(errorContacts==="") 
+                this.contacts.submitDisabled=false;
+            else   
+                this.contacts.submitDisabled=true;
+        }
+    } 
+    
 }

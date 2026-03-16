@@ -14,6 +14,8 @@ export class Contacts extends Form{
 
         this.emailInput.addEventListener('input', ()=>{this.events.emit('contacts:email',{email:this.emailInput.value})});
         this.phoneInput.addEventListener('input', ()=>{this.events.emit('contacts:phone',{phone:this.phoneInput.value})});
+
+        super.submitDisabled = true;
     }
 
     set email(value: string){

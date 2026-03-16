@@ -17,12 +17,13 @@ export class CardPreview extends Card{
         this.imageElement = ensureElement<HTMLImageElement>('.card__image',this.container);
         this.textElement = ensureElement<HTMLElement>('.card__text',this.container);
         this.buttonElement = ensureElement<HTMLButtonElement>('.button', this.container);
+        
         this.buttonElement.addEventListener('click', () => {
-            events.emit("CardPreview:select", {id: this.id});
+            events.emit("CardPreview:select");
         });
     }
 
-    set description(value: string){ //Описание в IProduct
+    set description(value: string){
         this.textElement.textContent = value;
     }
 
@@ -37,18 +38,11 @@ export class CardPreview extends Card{
         this.setImage(this.imageElement, "/src/content/"+src, this.title || 'Незагруженная картинка');
     }
 
-    set price(value: number | null){
-        this.priceElement.textContent = (value === null) ? 'Бесценно' : `${value} синапсов`;
-        if(!value){
-            this.buttonElement.disabled = true;
-            this.buttonElement.textContent = 'Недоступно';
-        } else {
-            this.buttonElement.disabled = false;
-            this.buttonElement.textContent = 'Купить';
-        }
+    set buttonText(value: string) {
+        this.buttonElement.textContent = value;
     }
 
-    public setTextOnButton(value: string){
-        this.buttonElement.textContent = value;
+    set buttonDisabled(value: boolean) {
+        this.buttonElement.disabled = value;
     }
 }

@@ -44,3 +44,7 @@ export interface IPost {
 export function isCategoryKey(key: string): key is keyof typeof categoryMap {
     return key in categoryMap;
 }
+
+export interface ICardActions {
+    onClick: (event: MouseEvent) => void;
+}

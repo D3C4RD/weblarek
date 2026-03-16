@@ -17,11 +17,11 @@ export abstract class Form extends Component<IBuyer>{
         this.submit.addEventListener('click', (e) => {this.events.emit(event); e.preventDefault()});
     }
 
-    public setSubmitDisable(value:boolean):void{
-            this.submit.disabled = value;
+    set submitDisabled(value: boolean) {
+        this.submit.disabled = value;
     }
 
-    public setErrors(value: string){
+    set errorText(value: string) {
         this.errors.textContent = value;
     }
 }
