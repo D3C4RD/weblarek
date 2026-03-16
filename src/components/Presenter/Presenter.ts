@@ -31,7 +31,7 @@ export class Presenter{
     //View
     protected modal: IModalView;
     protected header: IHeaderView;
-    protected BasketView: IBasketView;
+    protected basketView: IBasketView;
     protected order: IOrderView;
     protected contacts: IContactsView;
     protected succes: ISuccesView;
@@ -70,11 +70,10 @@ export class Presenter{
 
         this.modal = modal;
         this.header = header;
-        this.BasketView = basketView;
+        this.basketView = basketView;
         this.order = order;
         this.contacts = contacts;
         this.succes = succes;
-        //this.preview = new CardPreview(this.events);
 
         this.gallery = gallery;
 
@@ -132,7 +131,6 @@ export class Presenter{
             return card.render(product);
         });
         
-        // Обновляем галерею через компонент View
         this.gallery.items = cardElements;
     }
 
@@ -204,8 +202,8 @@ export class Presenter{
             return cardElement;
         });
         
-        this.BasketView.buttonDisabled = products.length === 0;
-        this.BasketView.render({ 
+        this.basketView.buttonDisabled = products.length === 0;
+        this.basketView.render({ 
             data: cardElements, 
             total: total 
         });
@@ -230,7 +228,7 @@ export class Presenter{
     protected handleBasketOpen(): void{
         this.isBasketOpen = true;
         this.renderBasket();
-        this.modal.render({content: this.BasketView.render()});
+        this.modal.render({content: this.basketView.render()});
         this.modal.open();
     }
 

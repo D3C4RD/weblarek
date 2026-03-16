@@ -1,5 +1,5 @@
 
-import { ensureElement } from "../../utils/utils";
+import { ensureElement, cloneTemplate } from "../../utils/utils";
 import { Component } from "../base/Component";
 import { IEvents } from "../base/Events";
 
@@ -14,9 +14,7 @@ export class BasketView extends Component<IBasketView>{
     protected buttonElement: HTMLButtonElement;
     
     constructor(protected events: IEvents) {
-        const temp: HTMLTemplateElement = ensureElement<HTMLTemplateElement>("#basket");
-        const fragment = temp.content.cloneNode(true) as DocumentFragment;
-        const container = fragment.firstElementChild as HTMLElement;
+        const container = cloneTemplate<HTMLElement>("#basket");
         super(container);
 
         this.listElement = ensureElement<HTMLElement>('.basket__list', this.container);

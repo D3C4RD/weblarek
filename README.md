@@ -167,13 +167,13 @@ export interface IBuyer {
 
  `getItems() : readonly IProduct[]` - получить список товаров
 
- `setItems(items: IProduct[]): void` - сохранить список товаров
+ `setItems(items: IProduct[]): void` - сохранить список товаров и послать событие `'products:changed'`
 
  `getItemById(id: string): Readonly<IProduct> | null` - получить выбранную карточку по id 
 
  `getItem(item: IProduct): Readonly<IProduct> | null` - получить выбранную карточку
 
- `setItem(item: IProduct): void` - сохранить выбранную карточку
+ `setItem(item: IProduct): void` - сохранить выбранную карточку и послать событие `'product:selected'`
   
 #### Класс Basket 
 
@@ -188,11 +188,11 @@ export interface IBuyer {
 Методы класса:
  `getItems(): readonly IProduct[]` - возвращает список покупаемых товаров
 
- `addItem(item: IProduct): void` - добавляет товар в корзину
+ `addItem(item: IProduct): void` - добавляет товар в корзину и послать событие `'basket:changed'`
 
- `removeItem(item: IProduct): void` - удаляет товар из корзины
+ `removeItem(item: IProduct): void` - удаляет товар из корзины и послать событие `'basket:changed'`
 
- `clearBusker(): void` - очищает корзину
+ `clearBusker(): void` - очищает корзину и послать событие `'basket:changed'`
 
  `getQuantity(): number` - возвращает количество товаров в корзине
 
@@ -214,9 +214,9 @@ export interface IBuyer {
 
  `getData(): Readonly<IBuyer>` - получить данные покупателя
 
- `setData(data: Partial<IBuyer>): void` - установить данные покупателя
+ `setData(data: Partial<IBuyer>): void` - установить данные покупателя и послать событие `'buyer:changed'`
 
- `clearData(): void` - очистка данных покупателя
+ `clearData(): void` - очистка данных покупателя и послать событие `'buyer:changed'`
 
  `checkData(): Partial<Record<keyof IBuyer, string>>` - проверить введенные данные, вернет объект, который будет указывать на неверные поля
   
@@ -287,11 +287,7 @@ export interface IPost {
 
 Для наглядности изобразим схему классов
 
-![View](/src/UML/View.png)
-
-### Класс Component<T>
-
-является базовым классов, который выполняет основную роль: рендерит HTMLElement по интерфейсу T, а также позволяет установить картинку в HTMLIMageElement
+![View](/src/UML/Architecture%20View.png)
 
 ### Класс Header 
 
@@ -300,56 +296,506 @@ export interface IPost {
 Отображает количество товаров в корзине
 А так же должен посылать presenter'у сигнал об открытии корзины
 
-### Класс Card 
+Используемый интерфейс для рендера
 
-Является родителем других классов, позволяет отображать карточки по шаблонам и устанавливать общие элементы дочерних классов
+```
+interface IHeader{
+    counter: number;
+}
+```
 
-### Класс BasketCard
+Поля класса
 
-Наследует поля и методы Card, отображает данные одного товара в корзине, а также посылает сигнал presenter'у об удалении товара из корзины
+`protected counterElement: HTMLElement` - содержит HTML элемент, отвечающий за отображение числа товара в корзине
 
-### Класс GalleryCard
+`protected basketButton: HTMLButtonElement` - содержит HTML кнопку, к которой будет подключено событие: открытие корзины (`'basket:open'`) по клику
 
-Наследует поля и методы Card и является родителем CardPreview, отображает данные одного товара в галлерее, а также посылает сигнал presenter'у о выбранной карточке товара
+Конструктор класса
 
-В конструкторе указывается кнопка и сигнал, чтобы наследуемый класс, тоже мог пользоваться другими сигналами и кнопкой
+```
+constructor(protected events: IEvents)
+```
 
-### Класс CardPreview 
+данный конструктор задает значения полям класса, а также вешает событие на нажатие кнопки
 
-Наследует поля и методы GalleryCard, отображает данные товара в модальном окне и посылает сигнал о нажатии кнопки добавления/удаления товара в/из корзин(у/ы)
+Методы класса
+
+`set counter(value:number)` - сеттер, которые задает число товаров в корзине
 
 ### Класс Modal
 
-Отвечает за открытие и закрытие модального окна (через сигналы), а так же за отрисовку контента из шаблонов
+Класс, отвечающий за модальное окно сайта: отображает HTML контент других классов(CardPreview, BasketView, Order, Contacts, Succes), а так же отвечает за открытие и закрытие модального окна
 
-### ModalBasket 
+Используемый интерфейс для рендера 
 
-является контентом модального и отображает список товаров и посылает сигнал об оформлении заказа
+```
+export interface IModalData {
+    content: HTMLElement | null;
+}
+```
 
-### Form
+Поля класса
 
-Является родительским классов, который отображает шаблон формы и посылает сигнал о заполнении формы в шаблоне
+`protected contentContainer: HTMLElement` - хранит HTML элемент, отвечающий за подстановку содержимого из шаблонов для модального окна
 
-### Order
+`protected closeButton: HTMLButtonElement` - хранит кнопку закрытия модального окна
 
-Наследует поля Form. Отображает способ оплаты и адресс, а также посылает сигнал о продолжении формы через presenter
+Конструктор класса
 
-### Contacts 
+```
+constructor(protected events: IEvents)
+```
 
-Наследует поля Contacts. Отображает заполнение почты и телефона и посылает сигнал о завершении оформления заказа через presenter
+Данный конструктор находит нужные элементы для работы с модальным окном, а так же вешает события закрытия окна при нажатии крести и нажатии за рамки модального окна при помощи вызова события `'modal:close'`
 
-### Succes 
+Методы класса 
 
-Отображает информацию о подтверждении заказа
+`set content(value: HTMLElement | null)` - сеттер, который задает контент, который будет отображаться в модальном окне
 
-## Презентер
+`open()` - метод, который позволяет отобразить модальное окно на странице
 
-Presenter выглядит следующим образом
+`close()` - метод, который позволяет закрыть модальное окно на странице
 
-![Presenter](/src/UML/Presenter.png)
+### Класс Card
 
-Это фасад из всех классов из Model и View
+Абстрактный класс, который собирает общие элементы дочерних элементов(CardGallery, CardBasket, CardPreview)
 
-Так же есть метод renderGallery(), которые рендерит карточки каталога за счет get запроса с сервера
+Используемый интерфейс для рендера: `IProduct`
 
-и методы handle, которые будут использовать для отработки событий
+Поля класса
+
+`protected titleElement: HTMLElement` - хранит HTML элемент, который отвечает за название товара
+
+`protected priceElement: HTMLElement` - хранит HTML элемент, который отвечает за цену товара
+
+Конструктор класса 
+
+```
+constructor(protected events: IEvents, template: string)
+```
+
+устанавливает шаблон для отображения карточки, находит нужные элементы для работы с данными
+
+Методы класса
+
+`set title(value:string)` - сеттер, который устанавливает текст названия товара
+
+`set price(value:number | null)` - сеттер, который устанавливает текст цены товара
+
+### Класс CardGallery
+
+Класс отвечающий за отображение карточки товара в галлерее, является наследником класса `Card`
+
+Интерфейс используемый для рендера 
+
+`такой же как у Card`
+
+Поля класса 
+
+`protected categoryElement: HTMLElement` - хранит HTML элемент, который отвечает за категорию товара
+
+`protected imageElement: HTMLImageElement` - хранит HTML элемент, отвечающий за картинку товара
+
+Конструктор класса 
+
+```
+constructor(protected events: IEvents, actions?: ICardActions)
+```
+
+Устанавливает нужный шаблон через родительский конструктор, устанавливает нужные элементы для работы с данными, а так же вешает на все свое тело(она же и кнопка) событие при нажатии
+
+Методы класса 
+
+`set category(value: string)` - сеттер, который устанавливает категорию товара
+
+`set image(src: string)` - сеттер, который устанавливает картинку товара
+
+### Класс CardBasket
+
+Класс, который отвечает за отображение карточки в корзине товаров, является наследником класса `Card`
+
+Интерфейс используемый для рендера 
+
+`такой же как у Card`
+
+Поля класса 
+
+`protected indexElement: HTMLElement` - хранит HTML элемент позиции товара в корзине
+
+`protected deleteButton: HTMLButtonElement` - хранит HTML элемент, отвечающий за удаление товара в корзине
+
+Конструктор товара
+
+```
+constructor(events: IEvents, actions?: ICardActions)
+```
+
+Устанавливает шаблон через родительский конструктор, устанавливает нужные элементы для полей, а так же вешает на кнопку удаления событие при нажатии
+
+Методы класса 
+
+`set index(value: number)` - сеттер, который устанавливает позицию товара
+
+### Класс CardPreview 
+
+Класс, отвечающий за отображение выбранного товара из галлереи, является наследником класса `Card`
+
+Интерфейс используемый для рендера 
+
+`такой же как у Card`
+
+Поля класса
+
+`protected textElement: HTMLElement` - хранит описание товара
+
+`protected categoryElement: HTMLElement` - хранит HTML элемент, который отвечает за категорию товара
+
+`protected imageElement: HTMLImageElement` - хранит HTML элемент, отвечающий за картинку товара
+
+`protected buttonElement: HTMLButtonElement` - хранит HTML элемент, отвечающий за кнопку добавления или удаления товара в/из корзины
+
+Конструктор класса 
+
+```
+constructor(protected events: IEvents)
+```
+
+Устанавливает шаблон через конструктор родителя, устанавливает нужные элементы для полей, а также устанавливает событие `CardPreview:select` при нажатии на кнопку
+
+Методы класса 
+
+`set description(value: string)` - сеттер, который устанавливает описание товара
+
+`set category(value: string)` - сеттер, который устанавливает категорию товара
+
+`set image(src: string)` - сеттер, который устанавливает картинку товара
+
+`set buttonText(value:string)` - сеттер, который устанавливает название кнопки
+
+`set buttonDisabled(value: boolean)` - сеттер, который устанавливает доступность кнопки
+
+### Класс Succes 
+
+Класс, отвечающий за отображение подтверждения покупки
+
+Интерфес используемый для рендера 
+
+```
+interface ISucces{
+    total: number;
+}
+```
+
+Поля класса 
+
+`protected succesButton:HTMLButtonElement` - хранит HTML элемент, отвечающий за кнопку подтверждения успешной покупки
+
+`protected orderSucces:HTMLElement` - хранит HTML элемент, отвечающий за уведомление о списании денег за заказ
+
+Конструктор класса 
+
+```
+constructor(protected events: IEvents)
+```
+
+Устанавливает нужный шаблон для отображени, устанавливает нужные элементы для полей, а также добавляет событие `modal:close` для кнопки
+
+методы класса 
+
+`set total(value:number)` - сеттер, которы устанавливает цену списанных денег за заказ
+
+### Класс Form
+
+Абстрактный класс, который собирает общие элементы дочерних классов (Order, Contacts)
+
+Интерфес используемый для рендера: `IBuyer`
+
+Поля класса 
+
+`protected submit: HTMLButtonElement` - хранит HTML кнопку, отвечающую за подтверждения заполнения формы
+
+`protected errors: HTMLElement` - хранит HTML элемент, отвечающий за отображение ошибок при заполнении полей формы 
+
+Конструктор класса 
+
+```
+constructor(protected events: IEvents, template: string, event: string)
+```
+
+Устанавливает нужный шаблон, устанавливает нужные элементы для полей класса, а также вешает событие `event` для кнопки submit
+
+Методы класса 
+
+`set submitDisabled(value:boolean)` - сеттер, который устанавливает доступность кнопки submit
+
+`set errorText(value:string)` - сеттер, который указывает ошибки при заполнении полей
+
+### Класс Order
+
+Класс, отвечающий за форму заполнения способы оплаты и адреса доставки, является наследником класса `Form`
+
+Поля класса 
+
+`protected cashButton: HTMLButtonElement` - HTML кнопка, которая отвечает за ввод одного из способв оплаты
+
+`protected cardButton: HTMLButtonElement` -  HTML кнопка, которая отвечает за ввод одного из способв оплаты
+
+`protected addressInput: HTMLInputElemtn` - HTML ввод, который отвечает за ввод адреса доставки
+
+Конструктор класса 
+
+```
+constructor(protected events: IEvents)
+```
+
+Устанавливает шаблон формы и вешает событие `'order:submit'` на кнопку submit через родительский конструктор, устанавливает полям класса элементы, а так же вешает события на способы оплаты: `'order:payment'` с типом введеного данного и на адрес доставки `'order:address'` c веденным адресом
+
+Методы класса 
+
+`set payment(value: TPayment)` - сеттер, который отвечает за отображение введенного способа оплаты
+
+`set address(value:string)` - сеттер, который отвечает за ввод адреса доставки
+
+### Класс Contacts
+
+Класс, отвечающий за форму заполнения почты и телефона покупателя, является наследником класса `Form`
+
+Поля класса 
+
+`protected emailInput: HTMLInputElement` - хранит HTML элемент, отвечающий за ввод почты покупателя
+
+`protected phoneInput: HTMLInputElement` - хранит HTML элемент, отвечающий за ввод телефона покупателя 
+
+Конструктор класса 
+
+```
+constructor(protected events:IEvents)
+```
+
+Устанавливает шаблон формы и вешает событие `'contacts:submit'` на кнопку submit через родительский класс устанавливает полям класса элементы, а так же вешает событие на почту: `'contacts:emai'` с введенной почтой и на телефон `'contacts:phone'` c веденным телефоном
+
+Методы класса 
+
+`set email(value:string)` - сеттер, устанавливающий введеную почту
+
+`set phone(value:string)` - сеттер, устанавливающий введенный телефон
+
+### Класс BasketView
+
+Класс, отвечающий за отображение корзины товаров в модальном окне
+
+Интерфейс использующийся для рендера
+
+```
+interface IBasketView{
+    data: HTMLElement[],
+    total: number
+}
+```
+
+Поля класса 
+
+`protected listElement: HTMLElement[]` - хранит список HTML элементов карточек товаров, добавленных в корзину
+
+`protected totalElement: HTMLElement` - хранит HTML элемент итоговой стоимости заказа
+
+`protected buttonElement: HTMLButtonElement` - хранит HTML кнопку для оформления заказа
+
+Конструктор класса
+
+```
+constructor(protected events: IEvents)
+```
+
+Устанавливает шаблон корзины товаров через конструктор родителя `Component<T>`, устанавливает поля класса и вешает событие `'basket:order'` на кнопку оформления заказа 
+
+Методы класса 
+
+`set data(elements: HTMLElements[])` - сеттер, который устанавливает HTML элементы карточке товара в списке товаров
+
+`set total(value: number)` - сеттер, который устанавливает итоговую стоимость товара
+
+`set buttonDisabled(value: boolean)` - сеттер, который устанавливает доступность кнопки оформления заказа
+
+### Класс Gallery
+
+Класс, отвечающий за отображение галлереи из карточек на главной странице
+
+Интерфейс использующийся для рендера
+
+```
+export interface IGallery{
+    items: HTMLElement[];
+}
+```
+
+Поля класса 
+
+`protected content: HTMLElement` - HTML элемент, который хранит точку загрузки карточек
+
+Конструктор класса 
+
+```
+constructor(protected events: IEvents)
+```
+
+Устанавливает нужный элемент в поле класса
+
+Методы класса 
+
+`set items(elements: HTMLElement[])` - сеттер, который устанавливает HTML элементы карточек товаров
+
+## Presenter
+
+Класс, который обрабатывает события из Models и View
+
+Перед описание класса рассмотрим события, которые будут обрабатываться
+
+### События в Models
+
+`'products:changed'` - возникает, когда в `Products` изменились товары
+
+`'product:selected'` - возникает, когда в `Products` выбрали один из товаров
+
+`'basket:changed'` - возникает, когда в `Basket` изменились товары, добавили товар или удалили товар
+
+`'Buyer:changed'` - возникает, когда очистили данные `Buyer` или изменили данные `Buyer`
+
+### События в View 
+
+`'CardGallery:select'` - возникает, когда пользователь нажал на карточку из галлереи
+
+`'CardPreview:select'` - возникает, когда пользователь нажал на добавление или удаление товара из корзины через превью карточки в модальном окне
+
+`'modal:close'` - возникает, когда пользователь закрывает модальное окно
+
+`'basket:open'` - возникает, когда пользователь нажимает на кнопку корзины
+
+`'cardBasket:delete'` - возникает, когда пользователь удаляет товар через окно корзины
+
+`'basket:order'` - возникает, когда пользователь нажимает на кнопку оформления заказа 
+
+`'order:payment'` - возникает, когда пользователь нажал на одну из кнопок способа оплаты
+
+`'order:address'` - возникает, когда пользователь вводит адрес
+
+`'contacts:phone'` - возникает, когда пользователь вводит телефон
+
+`'contacts:email'` - возникает, когда пользователь вводит почту
+
+`'order:submit'` - возникает, когда пользователь нажимает на кнопку submit в форме `Order`
+
+`'contacts:submit'` - возникает, когда пользователь нажимает на кнопку submit в форме `Contacts`
+
+### Описание класса 
+
+Поля класса 
+
+Классы из View и Models подставляются через интерфейсы `IClassName`, где `ClassName` это имя класса в каждом таком классе написаны поля и методы класса описанных классов 
+
+Подробнее об этих интерфейсах в './types/*'
+
+`protected events: EventEmitter` - брокке событий
+
+`protected webapi: IWebApi` - api с сервером
+
+`protected products: IProductsModel` - класс `Products` 
+
+`protected basket: IBasketModel` - класс `Basket`
+
+`protected buyer: IBuyerModel` - класс `Buyer`
+
+`protected modal: IModalView` - класс `Modal`
+
+`protected header: IHeaderView` - класс `Header`
+
+`protected basketView: IBasketView` - класс `BasketView`
+
+`protected order: IOrderView` - класс `Order`
+
+`protected contacts: IContactsView` - класс `Contacts`
+
+`protected succes: ISuccesView` - класс `Succes`
+
+`protected gallery: IGalleryView` - класс `Gallery`
+
+`protected currentPreview: ICardPreviewView | null = null` - Ссылка на текущее превью класса `CardPreview`
+
+`protected isBasketOpen: boolean` - флаг на открытие корзины в модальном окне
+
+`protected isOrderOpen: boolean` - флаг на открытие заполнения 1 формы заказа
+
+`protected isContactsOpen: boolean` - флаг на открытие заполнения 2 формы заказа
+
+`protected isSuccesOpen: boolean` - флаг на открытие завершения оформления заказа
+
+Конструктор класса
+
+```
+constructor(
+        events: EventEmitter,
+        api:IWebApi, 
+        products: IProductsModel,
+        basket: IBasketModel, 
+        buyer: IBuyerModel,
+        modal: IModalView,
+        header: IHeaderView,
+        basketView: IBasketView,
+        order: IOrderView,
+        contacts: IContactsView,
+        succes: ISuccesView,
+        gallery: IGalleryView
+    )
+```
+
+Задает поля класса и подписывается на события через метод `subscribeToEvents()`
+
+Методы класса
+
+`public async init(): Promise<void>` - получает товары с сервера, задает эти товары в поле `products` и рендерит товары на главной странице
+
+`protected subscribeToEvents(): void` - подписывается на события 
+
+`private renderGallery(): void` - рендерит галлерею
+
+`protected handleCardGallerySelect(data:{id: string}): void` - функция, которая запускается по событию `'CardGallery:select'`
+
+`protected handleProductSelected(): void` - функция, которая запускатся по событию `'product:selected'`
+
+`protected handleCardPreviewSelected(): void` - функция, которая запускатся по событию `'CardPreview:select'`
+
+`protected handleModalClose(): void` - функция, которая запускается по событию `'modal:close'`
+
+`private renderBasket(): void` - функция, которая отображет товар в корзине
+
+`protected handleBasketChanged(): void` - функция, которая запускается по событию `'basket:changed'` 
+
+`protected handleBasketOpen(): void` - функция, которая запускается по событию `'basket:open'`
+
+`protected handleCardBasketDelete(data:{id: string}): void` - функция, которая запускается по событию `cardBasket:delete`
+
+`protected handleBasketOrder(): void` - функция, которая запускается по событию `'basket:order'`
+
+`protected handleOrderSubmit(): void` - функция, которая запускается по событию `'order:submit'`
+
+`protected handleContactsSubmit():void` - функция, которая запускается по событию `'contacts:submit'`
+
+`protected handleOrderPayment(data:{payment: TPayment}): void` - функция, котораяя запускается по событию `'order:payment'`
+
+`protected handleOrderAddress(data:{address: string}):void` - функция, которая запускается по событию `'order:address'`
+
+`protected handleContactsEmail(data:{email:string}):void` - функция, которая запускается по событию `'contacts:email'`
+
+`protected handleContactsPhone(data:{phone:string}):void` - функция, которая запускается по событию `contacts:phone`
+
+`protected handleBuyerChanged():void` - функция, которая запускается по событию `'buyer:changed'`
+
+
+ 
+
+
+
+
+
+
+
