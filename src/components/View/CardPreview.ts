@@ -10,8 +10,8 @@ export class CardPreview extends Card{
     protected imageElement: HTMLImageElement;
     protected buttonElement: HTMLButtonElement;
 
-    constructor(protected events: IEvents) {
-        super(events,"#card-preview");
+    constructor(protected events: IEvents, template: HTMLElement) {
+        super(events,template);
 
         this.categoryElement = ensureElement<HTMLElement>('.card__category',this.container);
         this.imageElement = ensureElement<HTMLImageElement>('.card__image',this.container);

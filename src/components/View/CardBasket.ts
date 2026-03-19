@@ -8,8 +8,8 @@ export class CardBasket extends Card{
     protected deleteButton: HTMLButtonElement;
 
 
-    constructor(events: IEvents, actions?: ICardActions){
-        super(events,'#card-basket');
+    constructor(events: IEvents, template: HTMLElement, actions?: ICardActions){
+        super(events,template);
 
         this.indexElement = ensureElement<HTMLElement>('.basket__item-index',this.container);
         this.deleteButton = ensureElement<HTMLButtonElement>('.basket__item-delete', this.container);

@@ -6,8 +6,8 @@ export class Contacts extends Form{
     protected emailInput: HTMLInputElement;
     protected phoneInput: HTMLInputElement;
 
-    constructor(protected events:IEvents){
-        super(events,'#contacts','contacts:submit');
+    constructor(protected events:IEvents, template: HTMLElement){
+        super(events,template,'contacts:submit');
 
         this.emailInput = ensureElement<HTMLInputElement>('.form__input[name="email"]',this.container);
         this.phoneInput = ensureElement<HTMLInputElement>('.form__input[name="phone"]',this.container);

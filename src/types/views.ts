@@ -29,6 +29,8 @@ export interface IOrderView {
 }
 
 export interface IContactsView {
+    phone: string;
+    email: string;
     errorText: string;
     submitDisabled: boolean;
     render(data: { phone: string, email: string }): HTMLElement;

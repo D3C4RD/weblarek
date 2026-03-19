@@ -2,15 +2,12 @@ import { Component } from "../base/Component";
 import {IEvents} from "../base/Events";
 import { ensureElement } from "../../utils/utils";
 import { IProduct } from "../../types";
-import { cloneTemplate } from "../../utils/utils";
 
 export abstract class Card extends Component<IProduct>{
     protected titleElement: HTMLElement;
     protected priceElement: HTMLElement;
-    constructor(protected events: IEvents, template: string){
-        
-        const container = cloneTemplate<HTMLElement>(template);
-        super(container);
+    constructor(protected events: IEvents, template: HTMLElement){
+        super(template);
 
         this.titleElement = ensureElement<HTMLElement>('.card__title',this.container);
         this.priceElement = ensureElement<HTMLElement>('.card__price',this.container);

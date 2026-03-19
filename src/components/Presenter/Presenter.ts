@@ -1,8 +1,6 @@
-import { EventEmitter } from "../base/Events";
-import { CardGallery } from "../View/CardGallery";
-import { CardPreview } from "../View/CardPreview";
+import { IEventEmitter } from "../base/Events";
+import { ICardGalleryFactory, ICardBasketFactory } from "../../types/factory.ts";
 import { IOrder, TPayment } from "../../types";
-import { CardBasket } from "../View/CardBasket";
 import { IBasketModel, IBuyerModel, IProductsModel } from "../../types/models";
 import { IWebApi } from "../../types/api";
 import { 
@@ -19,7 +17,7 @@ import {
 
 export class Presenter{
     //Брокер событий
-    protected events: EventEmitter;
+    protected events: IEventEmitter;
     //Api
     protected webapi: IWebApi;
 
@@ -30,6 +28,7 @@ export class Presenter{
 
     //View
     protected modal: IModalView;
+    protected preview: ICardPreviewView;
     protected header: IHeaderView;
     protected basketView: IBasketView;
     protected order: IOrderView;
@@ -38,27 +37,25 @@ export class Presenter{
 
     //Gallery 
     protected gallery: IGalleryView;
-    
-    protected currentPreview: ICardPreviewView | null = null; // Ссылка на текущее превью
-
-    protected isBasketOpen: boolean = false;
-    protected isOrderOpen: boolean = false;
-    protected isContactsOpen: boolean = false;
-    protected isSuccesOpen: boolean = false;
+    protected cardGalleryFactory: ICardGalleryFactory;
+    protected cardBasketFactory: ICardBasketFactory;
 
     constructor(
-        events: EventEmitter,
+        events: IEventEmitter,
         api:IWebApi, 
         products: IProductsModel,
         basket: IBasketModel, 
         buyer: IBuyerModel,
         modal: IModalView,
+        preview: ICardPreviewView,
         header: IHeaderView,
         basketView: IBasketView,
         order: IOrderView,
         contacts: IContactsView,
         succes: ISuccesView,
-        gallery: IGalleryView
+        gallery: IGalleryView,
+        cardGalleryFactory: ICardGalleryFactory,
+        cardBasketFactory: ICardBasketFactory
     ){
         this.events = events;
 
@@ -69,6 +66,7 @@ export class Presenter{
         this.buyer = buyer;
 
         this.modal = modal;
+        this.preview = preview;
         this.header = header;
         this.basketView = basketView;
         this.order = order;
@@ -76,8 +74,8 @@ export class Presenter{
         this.succes = succes;
 
         this.gallery = gallery;
-
-
+        this.cardGalleryFactory = cardGalleryFactory;
+        this.cardBasketFactory = cardBasketFactory;
 
         this.subscribeToEvents();
     }
@@ -104,7 +102,7 @@ export class Presenter{
         this.events.on('CardPreview:select', this.handleCardPreviewSelected.bind(this)); //View -> Presenter -> Models
         
         //События для закрытия модального окна
-        this.events.on("modal:close", this.handleModalClose.bind(this));  //View -> Presenter -> View (UI)
+        this.events.on("modal:close-request", this.handleModalCloseRequest.bind(this));  //View -> Presenter -> View (UI)
 
         //События для корзины
         this.events.on('basket:changed', this.handleBasketChanged.bind(this));  //Models -> Presenter -> View
@@ -125,10 +123,10 @@ export class Presenter{
     private renderGallery(): void {
         const products = this.products.getItems();
         const cardElements = products.map(product => {
-            const card = new CardGallery(this.events,{
-                onClick: () => this.events.emit("CardGallery:select",{ id: product.id })
-            });
-            return card.render(product);
+            return this.cardGalleryFactory.createCard(
+                product,
+                () => {this.events.emit("CardGallery:select", { id: product.id })}
+            );
         });
         
         this.gallery.items = cardElements;
@@ -148,23 +146,20 @@ export class Presenter{
         const product = this.products.getItem();
         if(!product) return;
 
-        const preview = new CardPreview(this.events);
-        const previewElement = preview.render(product);
+        this.preview.buttonDisabled = false;
 
         const isInBasket = this.basket.hasItem(product.id);
         if (isInBasket) {
-            preview.buttonText = "Удалить из корзины";
+            this.preview.buttonText = "Удалить из корзины";
         } else if (product.price) {
-            preview.buttonText = "Купить";
+            this.preview.buttonText = "Купить";
         }
         else
         {
-            preview.buttonText = "Недоступно";
-            preview.buttonDisabled = true;
+            this.preview.buttonText = "Недоступно";
+            this.preview.buttonDisabled = true;
         }
-        this.currentPreview = preview;
-
-        this.modal.render({ content: previewElement });
+        this.modal.render({ content: this.preview.render(product) });
         this.modal.open();
     }
 
@@ -179,14 +174,12 @@ export class Presenter{
         {
             this.basket.addItem(product);
         }
+        this.modal.close();
     }
 
-    protected handleModalClose(): void {
+    protected handleModalCloseRequest(): void {
         this.modal.close();
-        this.currentPreview = null;
-        if(this.isBasketOpen) this.isBasketOpen = false;
-        if(this.isContactsOpen) this.isContactsOpen = false;
-        if(this.isOrderOpen) this.isOrderOpen = false;
+
     }
 
     private renderBasket(): void {
@@ -194,12 +187,12 @@ export class Presenter{
         const total = this.basket.getTotal();
         
         const cardElements: HTMLElement[] = products.map((product, index) => {
-            const card = new CardBasket(this.events,{
-                onClick: () => this.events.emit("cardBasket:delete",{ id: product.id })
-            });
-            card.index = index + 1;
-            const cardElement = card.render(product);
-            return cardElement;
+            return this.cardBasketFactory.createCard(
+                product,
+                index,
+                () => this.events.emit("cardBasket:delete",{ id: product.id },
+                )
+            );
         });
         
         this.basketView.buttonDisabled = products.length === 0;
@@ -211,23 +204,11 @@ export class Presenter{
     
     protected handleBasketChanged(): void{
         this.header.counter = this.basket.getQuantity();
-        if(this.isBasketOpen)
-        {
-            this.renderBasket();
-        }
-        else if(this.isSuccesOpen){
-            return;
-        }
-        else
-        {
-            this.modal.close();
-            this.currentPreview = null;
-        }
+        
+        this.renderBasket();
     }
 
     protected handleBasketOpen(): void{
-        this.isBasketOpen = true;
-        this.renderBasket();
         this.modal.render({content: this.basketView.render()});
         this.modal.open();
     }
@@ -242,8 +223,6 @@ export class Presenter{
         const temp = this.buyer.getData();
         const errors = this.buyer.checkData();
         let error: string = "";
-        this.isBasketOpen = false;
-        this.isOrderOpen = true;
         if(errors.payment) error+= errors.payment + "\n";
         if(errors.address) error+= errors.address;
         this.order.errorText = error;
@@ -257,8 +236,6 @@ export class Presenter{
         const temp = this.buyer.getData();
         const errors = this.buyer.checkData();
         let error: string = "";
-        this.isOrderOpen = false;
-        this.isContactsOpen = true;
         if(errors.email) error+= errors.email + "\n";
         if(errors.phone) error+= errors.phone;
         this.contacts.errorText = error;
@@ -270,8 +247,6 @@ export class Presenter{
     }
 
     protected handleContactsSubmit():void{
-        this.isContactsOpen = false;
-        this.isSuccesOpen = true;
         const temp = this.buyer.getData();
 
         const toSend: IOrder = { 
@@ -288,7 +263,6 @@ export class Presenter{
                     content: this.succes.render({ total: answer.total }) 
                 }); 
                 this.basket.clearBasket();
-                this.isSuccesOpen = false;
             })
             .catch(error => { 
                 console.error('Ошибка при отправке заказа:', error); 
@@ -316,32 +290,28 @@ export class Presenter{
         const errors = this.buyer.checkData();
         const buyer = this.buyer.getData();
 
-        if(this.isOrderOpen)
-        {
-            this.order.payment = buyer.payment;
+        this.order.payment = buyer.payment;
+        this.order.address = buyer.address;
 
-            let errorOrder: string = "";
-            if(errors.payment) errorOrder+= errors.payment+"\n";
-            if(errors.address) errorOrder+= errors.address;
-            this.order.errorText = errorOrder;
-            if(errorOrder==="") 
-                this.order.submitDisabled=false;
-            else 
-                this.order.submitDisabled=true;
-        }
+        let errorOrder: string = "";
+        if(errors.payment) errorOrder+= errors.payment+"\n";
+        if(errors.address) errorOrder+= errors.address;
+        this.order.errorText = errorOrder;
+        if(errorOrder==="") 
+            this.order.submitDisabled=false;
+        else 
+            this.order.submitDisabled=true;
+
+        this.contacts.phone = buyer.phone;
+        this.contacts.email = buyer.email;
         
-       
-        if(this.isContactsOpen)
-        {
-            let errorContacts: string ="";
-            if(errors.email) errorContacts+= errors.email+"\n";
-            if(errors.phone) errorContacts+= errors.phone;
-            this.contacts.errorText = errorContacts;
-            if(errorContacts==="") 
-                this.contacts.submitDisabled=false;
-            else   
-                this.contacts.submitDisabled=true;
-        }
+        let errorContacts: string ="";
+        if(errors.email) errorContacts+= errors.email+"\n";
+        if(errors.phone) errorContacts+= errors.phone;
+        this.contacts.errorText = errorContacts;
+        if(errorContacts==="") 
+            this.contacts.submitDisabled=false;
+        else   
+            this.contacts.submitDisabled=true;
     } 
-    
 }

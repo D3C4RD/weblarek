@@ -313,7 +313,7 @@ interface IHeader{
 Конструктор класса
 
 ```
-constructor(protected events: IEvents)
+constructor(protected events: IEvents, container: HTMLElement)
 ```
 
 данный конструктор задает значения полям класса, а также вешает событие на нажатие кнопки
@@ -343,10 +343,10 @@ export interface IModalData {
 Конструктор класса
 
 ```
-constructor(protected events: IEvents)
+constructor(protected events: IEvents, container: HTMLElement)
 ```
 
-Данный конструктор находит нужные элементы для работы с модальным окном, а так же вешает события закрытия окна при нажатии крести и нажатии за рамки модального окна при помощи вызова события `'modal:close'`
+Данный конструктор находит нужные элементы для работы с модальным окном, а так же вешает события закрытия окна при нажатии крести и нажатии за рамки модального окна при помощи вызова события `'modal:close-request'`
 
 Методы класса 
 
@@ -371,7 +371,7 @@ constructor(protected events: IEvents)
 Конструктор класса 
 
 ```
-constructor(protected events: IEvents, template: string)
+constructor(protected events: IEvents, template: HTMLElement)
 ```
 
 устанавливает шаблон для отображения карточки, находит нужные элементы для работы с данными
@@ -399,7 +399,7 @@ constructor(protected events: IEvents, template: string)
 Конструктор класса 
 
 ```
-constructor(protected events: IEvents, actions?: ICardActions)
+constructor(protected events: IEvents, template: HTMLElement,actions?: ICardActions)
 ```
 
 Устанавливает нужный шаблон через родительский конструктор, устанавливает нужные элементы для работы с данными, а так же вешает на все свое тело(она же и кнопка) событие при нажатии
@@ -427,7 +427,7 @@ constructor(protected events: IEvents, actions?: ICardActions)
 Конструктор товара
 
 ```
-constructor(events: IEvents, actions?: ICardActions)
+constructor(events: IEvents, template: HTMLElement,actions?: ICardActions)
 ```
 
 Устанавливает шаблон через родительский конструктор, устанавливает нужные элементы для полей, а так же вешает на кнопку удаления событие при нажатии
@@ -457,7 +457,7 @@ constructor(events: IEvents, actions?: ICardActions)
 Конструктор класса 
 
 ```
-constructor(protected events: IEvents)
+constructor(protected events: IEvents, container: HTMLElement)
 ```
 
 Устанавливает шаблон через конструктор родителя, устанавливает нужные элементы для полей, а также устанавливает событие `CardPreview:select` при нажатии на кнопку
@@ -495,7 +495,7 @@ interface ISucces{
 Конструктор класса 
 
 ```
-constructor(protected events: IEvents)
+constructor(protected events: IEvents, container: HTMLElement)
 ```
 
 Устанавливает нужный шаблон для отображени, устанавливает нужные элементы для полей, а также добавляет событие `modal:close` для кнопки
@@ -519,7 +519,7 @@ constructor(protected events: IEvents)
 Конструктор класса 
 
 ```
-constructor(protected events: IEvents, template: string, event: string)
+constructor(protected events: IEvents, template: HTMLElement, event: string)
 ```
 
 Устанавливает нужный шаблон, устанавливает нужные элементы для полей класса, а также вешает событие `event` для кнопки submit
@@ -545,7 +545,7 @@ constructor(protected events: IEvents, template: string, event: string)
 Конструктор класса 
 
 ```
-constructor(protected events: IEvents)
+constructor(protected events: IEvents, container: HTMLElement)
 ```
 
 Устанавливает шаблон формы и вешает событие `'order:submit'` на кнопку submit через родительский конструктор, устанавливает полям класса элементы, а так же вешает события на способы оплаты: `'order:payment'` с типом введеного данного и на адрес доставки `'order:address'` c веденным адресом
@@ -569,7 +569,7 @@ constructor(protected events: IEvents)
 Конструктор класса 
 
 ```
-constructor(protected events:IEvents)
+constructor(protected events:IEvents, container: HTMLElement)
 ```
 
 Устанавливает шаблон формы и вешает событие `'contacts:submit'` на кнопку submit через родительский класс устанавливает полям класса элементы, а так же вешает событие на почту: `'contacts:emai'` с введенной почтой и на телефон `'contacts:phone'` c веденным телефоном
@@ -604,7 +604,7 @@ interface IBasketView{
 Конструктор класса
 
 ```
-constructor(protected events: IEvents)
+constructor(protected events: IEvents, container: HTMLElement)
 ```
 
 Устанавливает шаблон корзины товаров через конструктор родителя `Component<T>`, устанавливает поля класса и вешает событие `'basket:order'` на кнопку оформления заказа 
@@ -636,7 +636,7 @@ export interface IGallery{
 Конструктор класса 
 
 ```
-constructor(protected events: IEvents)
+constructor(protected events: IEvents, container: HTMLElement)
 ```
 
 Устанавливает нужный элемент в поле класса
@@ -693,6 +693,64 @@ constructor(protected events: IEvents)
 
 Классы из View и Models подставляются через интерфейсы `IClassName`, где `ClassName` это имя класса в каждом таком классе написаны поля и методы класса описанных классов 
 
+Также для карточек из галлерии и корзины были реализованы фабрики этий классов
+
+Подробнее о них:
+
+интерфейсы
+
+```
+export interface ICardGalleryFactory {
+    createCard(
+        product: IProduct,
+        onClick?: () => void,
+    ): HTMLElement;
+}
+```
+
+Интерфейс класса CardGalleryFactory
+
+```
+export interface ICardBasketFactory {
+    createCard(
+        product: IProduct,
+        index: number,  
+        onClick?: () => void
+    ): HTMLElement;
+}
+```
+
+Интерфейс класса CardBasketFactory
+
+
+#### Класс CardGalleryFactory  
+
+Класс, который помогает избежать использования CardGallery напрямую в Presenter
+
+Поля класса:
+
+`private events: IEvents` - броккер событий
+
+`private template: string` - шаблон, который будет задавать карточку
+
+Конструктор класса устанавливает через параметры поля класса
+
+Метод класса
+
+`createCard` - создает карточку с событием onClick
+
+#### Класс CardBasketFactory 
+
+Класс, который помогает избежать использования CardBasket напрямую в Presenter
+
+Поля класса такие же как у CardGalleryFactory + index позиции в корзине
+
+Конструктор класса задает поля класса
+
+Метод класса 
+
+`createCard` - создает карточку с событием onClick
+
 Подробнее об этих интерфейсах в './types/*'
 
 `protected events: EventEmitter` - брокке событий
@@ -718,6 +776,10 @@ constructor(protected events: IEvents)
 `protected succes: ISuccesView` - класс `Succes`
 
 `protected gallery: IGalleryView` - класс `Gallery`
+
+`protected cardGalleryFactory: ICardGalleryFactory` - класс `CardGalleryFactory`
+
+`protected cardBasketFactory: ICardBasketFactory` - класс `CardBasketFactory`
 
 `protected currentPreview: ICardPreviewView | null = null` - Ссылка на текущее превью класса `CardPreview`
 
@@ -745,6 +807,8 @@ constructor(
         contacts: IContactsView,
         succes: ISuccesView,
         gallery: IGalleryView
+        cardGalleryFactory: ICardGalleryFactory,
+        cardBasketFactory: ICardBasketFactory
     )
 ```
 

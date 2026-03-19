@@ -89,3 +89,13 @@ export class EventEmitter implements IEvents {
     }
 }
 
+export interface IEventEmitter {
+    _events: Map<EventName, Set<Subscriber>>;
+    on<T extends object>(eventName: EventName, callback: (event: T) => void): void;
+    off(eventName: EventName, callback: Subscriber): void;
+    emit<T extends object>(eventName: string, data?: T): void;
+    onAll(callback: (event: EmitterEvent) => void): void;
+    offAll(): void;
+    trigger<T extends object>(eventName: string, context?: Partial<T>): (event?: object) => void;
+}
+

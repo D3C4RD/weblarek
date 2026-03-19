@@ -14,8 +14,11 @@ import { Order } from './components/View/Order';
 import { Contacts } from './components/View/Contacts';
 import { Succes } from './components/View/Succes';
 import { Gallery } from './components/View/Gallery';
+import { cloneTemplate, ensureElement } from './utils/utils';
+import { CardPreview } from './components/View/CardPreview';
+import { CardGalleryFactory, CardBasketFactory } from './types/factory';
 
-const images = import.meta.glob('./content/**', {
+import.meta.glob('./content/**', {
     eager: true,
     import: 'default'
 });
@@ -33,13 +36,16 @@ async function init() {
             new Products(events),
             new Basket(events),
             new Buyer(events),
-            new Modal(events),
-            new Header(events),
-            new BasketView(events),
-            new Order(events),
-            new Contacts(events),
-            new Succes(events),
-            new Gallery(events)
+            new Modal(events, ensureElement<HTMLElement>(".modal")),
+            new CardPreview(events, cloneTemplate("#card-preview")),
+            new Header(events, ensureElement<HTMLLinkElement>(".header")),
+            new BasketView(events, cloneTemplate("#basket")),
+            new Order(events, cloneTemplate("#order")),
+            new Contacts(events, cloneTemplate("#contacts")),
+            new Succes(events, cloneTemplate("#success")),
+            new Gallery(events, ensureElement(".gallery")),
+            new CardGalleryFactory(events, "#card-catalog"),
+            new CardBasketFactory(events,"#card-basket")
         );
         await presenter.init();
         

@@ -10,10 +10,7 @@ export class Succes extends Component<ISucces>{
     protected succesButton: HTMLButtonElement;
     protected orderSucces: HTMLElement;
 
-    constructor(protected events: IEvents){
-        const temp: HTMLTemplateElement = ensureElement<HTMLTemplateElement>("#success");
-        const fragment = temp.content.cloneNode(true) as DocumentFragment;
-        const container = fragment.firstElementChild as HTMLElement;
+    constructor(protected events: IEvents, container: HTMLElement){
         super(container);
 
         this.succesButton = ensureElement<HTMLButtonElement>(".button",this.container);

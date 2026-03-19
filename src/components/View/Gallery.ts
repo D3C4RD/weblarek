@@ -1,4 +1,3 @@
-import { ensureElement } from "../../utils/utils";
 import { IEvents } from "../base/Events";
 import { Component } from "../base/Component";
 
@@ -10,8 +9,7 @@ export interface IGallery{
 export class Gallery extends Component<IGallery>{
     protected content: HTMLElement;
 
-    constructor(protected events: IEvents){
-        const container = ensureElement<HTMLElement>(".gallery");
+    constructor(protected events: IEvents, container: HTMLElement){
         super(container);
 
         this.content = container;

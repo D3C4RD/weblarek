@@ -9,8 +9,8 @@ export class Order extends Form{
     protected addressInput: HTMLInputElement;
     
 
-    constructor(protected events: IEvents){
-        super(events,"#order","order:submit");
+    constructor(protected events: IEvents, template: HTMLElement){
+        super(events,template,"order:submit");
         this.cashButton = ensureElement<HTMLButtonElement>('.button[name="cash"]',this.container);
         this.cardButton = ensureElement<HTMLButtonElement>('.button[name="card"]',this.container);
         this.addressInput = ensureElement<HTMLInputElement>('.form__input[name="address"]',this.container);

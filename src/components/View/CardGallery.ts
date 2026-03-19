@@ -9,8 +9,8 @@ export class CardGallery extends Card{
     protected categoryElement: HTMLElement;
     protected imageElement: HTMLImageElement;
 
-    constructor(protected events: IEvents, actions?: ICardActions) {
-        super(events,'#card-catalog');
+    constructor(protected events: IEvents, template: HTMLElement, actions?: ICardActions) {
+        super(events,template);
 
         this.categoryElement = ensureElement<HTMLElement>('.card__category',this.container);
         this.imageElement = ensureElement<HTMLImageElement>('.card__image',this.container);
